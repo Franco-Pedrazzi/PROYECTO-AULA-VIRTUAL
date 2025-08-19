@@ -17,7 +17,7 @@ app = Flask(__name__)
 CORS(app)
 
 # Configuración de Flask y BD
-app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+pymysql://root:123456@localhost/Aula'
+app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+pymysql://root:123456@localhost/aula'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.secret_key = 'secret'
 
@@ -34,7 +34,7 @@ def load_user(email):
     return Usuario.query.get(email)
 
 class Usuario(UserMixin, db.Model):
-    __tablename__ = 'Cuenta_habilitada'
+    __tablename__ = 'usuario'
     Nombre = db.Column(db.String(100))
     Email = db.Column(db.String(100), unique=True, primary_key=True)
     Contraseña = db.Column(db.String(100))
