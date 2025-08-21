@@ -10,18 +10,16 @@ from email.mime.multipart import MIMEMultipart
 from email.header import Header
 from datetime import datetime
 
-
-
-
+from py.Rutas import rutas
+from py.apis import apis
+from py.db import db
 app = Flask(__name__)
 CORS(app)
 
-# Configuración de Flask y BD
-app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+pymysql://root:123456@localhost/aula'
-app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-app.secret_key = 'secret'
 
-db = SQLAlchemy(app)
+app.register_blueprint(rutas)
+app.register_blueprint(apis)
+
 login_manager = LoginManager()
 login_manager.init_app(app)
 login_manager.login_view = "login"

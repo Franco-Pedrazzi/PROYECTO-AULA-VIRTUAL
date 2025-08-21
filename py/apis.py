@@ -1,19 +1,9 @@
-from flask import Flask, render_template, request, jsonify, redirect, url_for
+from flask import Flask,Blueprint, render_template, request, jsonify, redirect, url_for
 from flask_sqlalchemy import SQLAlchemy
 from flask_cors import CORS
+from py.db import db
 
-
-app = Flask(__name__)
-CORS(app)
-
-# Configuración de Flask y BD
-app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+pymysql://root:123456@localhost/RenaultCup'
-app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-app.secret_key = 'secret'
-
-db = SQLAlchemy(app)
-
-
+apis = Blueprint('apis', __name__,template_folder='templates')
 
     
 class Jugador(db.Model):
@@ -74,7 +64,7 @@ class Responsable(db.Model):
     Fecha_nacimiento = db.Column(db.Date, nullable=True)
 
 
-@app.route('/api/Staff', methods=['POST'])
+@apis.route('/api/Staff', methods=['POST'])
 def add_Staff():
     try:
         data = request.get_json()
@@ -116,7 +106,7 @@ def add_Staff():
     except Exception as e:
         return jsonify({'success': False, 'error': str(e)}), 500
 
-@app.route('/api/Equipo', methods=['POST'])
+@apis.route('/api/Equipo', methods=['POST'])
 def add_Equipo():
     try:
         data = request.get_json()
@@ -152,13 +142,13 @@ def add_Equipo():
     except Exception as e:
         return jsonify({'success': False, 'error': str(e)}), 500
 
-@app.route('/api/Equipo', methods=['GET'])
+@apis.route('/api/Equipo', methods=['GET'])
 def get_Equipos():
     try:
         new_Equipo = Equipo.query.all()
         result = []
         for j in new_Equipo:
-            result.append({
+            result.apisend({
                 'id_equipo': Equipo.id_equipo,
                 'Colegio':Equipo.Colegio,
                 'Deporte':Equipo.Deporte,
@@ -170,7 +160,7 @@ def get_Equipos():
         return jsonify({'success': False, 'error': str(e)}), 500
 
 
-@app.route('/api/Players', methods=['POST'])
+@apis.route('/api/Players', methods=['POST'])
 def add_Player():
     try:
         data = request.get_json()
@@ -216,13 +206,13 @@ def add_Player():
     except Exception as e:
         return jsonify({'success': False, 'error': str(e)}), 500
 
-@app.route('/api/Players', methods=['GET'])
+@apis.route('/api/Players', methods=['GET'])
 def get_Jugadores():
     try:
         nuevo_Jugador = Jugador.query.all()
         result = []
         for j in nuevo_Jugador:
-            result.append({
+            result.apisend({
                 'id': j.id,
                 'Nombre': j.Nombre,
                 'Fecha_nacimiento': j.Fecha_nacimiento,
@@ -236,7 +226,7 @@ def get_Jugadores():
     except Exception as e:
         return jsonify({'success': False, 'error': str(e)}), 500
     
-@app.route('/api/Matches', methods=['POST'])
+@apis.route('/api/Matches', methods=['POST'])
 def add_Matches():
     try:
         data = request.get_json()
@@ -285,7 +275,7 @@ def add_Matches():
     except Exception as e:
         return jsonify({'success': False, 'error': str(e)}), 500
 
-@app.route('/api/Matches')
+@apis.route('/api/Matches')
 def get_matches():
     try:
         partidos = Partido.query.all()
@@ -293,7 +283,7 @@ def get_matches():
 
         for partido in partidos:
 
-            lista.append({
+            lista.apisend({
                 "Fase": partido.Fase,
                 "Arbitro": partido.Arbitro,
                 "Planillero": partido.Planillero,
@@ -306,7 +296,7 @@ def get_matches():
     except Exception as e:
         return jsonify(success=False, error=str(e)), 500
 
-@app.route('/api/responsable', methods=['POST'])
+@apis.route('/api/responsable', methods=['POST'])
 def agregar_responsable():
     try:
         data = request.get_json()
@@ -357,7 +347,7 @@ def agregar_responsable():
     except Exception as e:
         return jsonify({'success': False, 'error': str(e)}), 500
 
-@app.route('/api/Equipos', methods=['GET'])
+@apis.route('/api/Equipos', methods=['GET'])
 def get_equipos():
     equipos = Equipo.query.all()
     return jsonify([
@@ -371,7 +361,7 @@ def get_equipos():
         for equipo in equipos
     ])
 
-@app.route('/api/Equipo/<int:id>', methods=['PUT'])
+@apis.route('/api/Equipo/<int:id>', methods=['PUT'])
 def update_equipo(id):
     equipo = Equipo.query.get(id)
     if not equipo:
@@ -387,7 +377,7 @@ def update_equipo(id):
     except Exception as e:
         return jsonify({'success': False, 'error': str(e)}), 400
 
-@app.route('/api/Equipo/<int:id>', methods=['DELETE'])
+@apis.route('/api/Equipo/<int:id>', methods=['DELETE'])
 def delete_equipo(id):
     equipo = Equipo.query.get(id)
     if not equipo:

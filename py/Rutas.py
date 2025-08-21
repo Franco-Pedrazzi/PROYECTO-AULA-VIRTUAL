@@ -1,40 +1,38 @@
-from flask import Flask, render_template, request, jsonify, redirect, url_for
+from flask import Flask, render_template,Blueprint, request, jsonify, redirect, url_for
 from flask_cors import CORS
+from jinja2 import TemplateNotFound
 
-app = Flask(__name__)
-CORS(app)
-
-
+rutas = Blueprint('rutas', __name__,template_folder='templates')
 
 
 
-@app.route("/signup", methods=["GET"])
+@rutas.route("/signup", methods=["GET"])
 def signup_page():
     return render_template('signup and login/signup.html')
 
-@app.route("/login", methods=["GET"])
+@rutas.route("/login", methods=["GET"])
 def login_page():
     return render_template('signup and login/login.html')
-@app.route("/Add_Player")
+@rutas.route("/Add_Player")
 def Create_Player():
-    return render_template('../Add/Add_Player.html')
+    return render_template('Add/Add_Player.html')
 
-@app.route("/Cantina")
+@rutas.route("/Cantina")
 def Cantina():
-    return render_template('../Add/Cantina.html')
-@app.route("/Add_Equipo")
+    return render_template('Add/Cantina.html')
+@rutas.route("/Add_Equipo")
 def hell():
-    return render_template('../Add/Add_Equipo.html')
+    return render_template('Add/Add_Equipo.html')
 
-@app.route("/Add_Match")
+@rutas.route("/Add_Match")
 def Create_Match():
-    return render_template('../Add/Add_Match.html')
+    return render_template('Add/Add_Match.html')
 
-@app.route("/Add_Staff")
+@rutas.route("/Add_Staff")
 def Create_Staff():
-    return render_template('../Add/Add_Staff.html')
+    return render_template('Add/Add_Staff.html')
 
 
 
 if __name__ == "__main__":
-    app.run(debug=True)
+    rutas.run(debug=True)
