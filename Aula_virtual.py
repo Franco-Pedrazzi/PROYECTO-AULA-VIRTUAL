@@ -13,9 +13,16 @@ from datetime import datetime
 from py.Rutas import rutas
 from py.apis import apis
 from py.db import db
+
+
 app = Flask(__name__)
 CORS(app)
 
+app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+pymysql://root:123456@localhost/aula'
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+app.secret_key = 'secret'
+
+db.init_app(app)
 
 app.register_blueprint(rutas)
 app.register_blueprint(apis)
@@ -33,20 +40,20 @@ def load_user(email):
 
 class Usuario(UserMixin, db.Model):
     __tablename__ = 'usuario'
-    Nombre = db.Column(db.String(100))
-    Email = db.Column(db.String(100), unique=True, primary_key=True)
-    Contraseña = db.Column(db.String(100))
+    nombre = db.Column(db.String(100))
+    email = db.Column(db.String(100), unique=True, primary_key=True)
+    contraseña = db.Column(db.String(100))
     rango = db.Column(db.String(20))
 
     def get_id(self):
-        return self.Email 
+        return self.email 
     
     def is_active(self):
         return True
     
 
 class Verificacion(db.Model):
-    __tablename__ = 'Verificacion'
+    __tablename__ = 'verificacion'
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     email = db.Column(db.String(40))
     codigo = db.Column(db.String(20))
@@ -69,7 +76,7 @@ def check_email():
     if not email:
         return jsonify({"exists": False})
 
-    existe = Usuario.query.filter_by(Email=email).first() is not None or Verificacion.query.filter_by(email=email).first() is not None
+    existe = Usuario.query.filter_by(email=email).first() is not None or Verificacion.query.filter_by(email=email).first() is not None
     return jsonify({"exists": existe})
 
 @app.route("/signup", methods=["POST"])
@@ -79,12 +86,12 @@ def signup():
     email = data.get("Email")
     contraseña = data.get("Contraseña")
     rango = "A"
-    usuario = Usuario.query.filter_by(Email=email).first()
+    usuario = Usuario.query.filter_by(email=email).first()
     if not (nombre and email and contraseña):
         return jsonify({"success": False, "error": "Faltan datos"}), 400
 
     if usuario:
-        if not usuario or not check_password_hash(usuario.Contraseña, contraseña):
+        if not usuario or not check_password_hash(usuario.contraseña, contraseña):
             return jsonify({"success": False, "error": "El email ya está registrado y contraseña incorrecta"}), 401
         login_user(usuario)
         return jsonify({"success": False, "error": "El email ya está registrado"}), 400
@@ -117,14 +124,14 @@ def verificar_codigo():
         return jsonify({"success": False, "error": "Código incorrecto"}), 400
 
 
-    usuario_existente = Usuario.query.filter_by(Email=email).first()
+    usuario_existente = Usuario.query.filter_by(email=email).first()
     if usuario_existente:
         return jsonify({"success": False, "error": "Usuario ya verificado"}), 400
 
     nuevo_usuario = Usuario(
-        Nombre=verif.nombre,
-        Email=verif.email,
-        Contraseña=verif.contra_codificada,
+        nombre=verif.nombre,
+        email=verif.email,
+        contraseña=verif.contra_codificada,
         rango=verif.rango
     )
     db.session.add(nuevo_usuario)
@@ -144,14 +151,14 @@ def login():
     if not (email and contraseña):
         return jsonify({"success": False, "error": "Faltan campos"}), 400
 
-    usuario = Usuario.query.filter_by(Email=email).first()
-    if not usuario or not check_password_hash(usuario.Contraseña, contraseña):
+    usuario = Usuario.query.filter_by(email=email).first()
+    if not usuario or not check_password_hash(usuario.contraseña, contraseña):
         return jsonify({"success": False, "error": "Contraseña incorrecta"}), 401
 
     login_user(usuario)
     return jsonify({"success": True, "usuario": {
-        "Nombre": usuario.Nombre,
-        "Email": usuario.Email
+        "Nombre": usuario.nombre,
+        "Email": usuario.email
     }}), 200
 
 @app.route("/logout")
