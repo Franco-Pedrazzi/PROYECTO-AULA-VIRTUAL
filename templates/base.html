@@ -12,18 +12,14 @@
   <nav
     style="display: flex; justify-content: space-between; background-color: #ffda34; padding: 10px; align-items: center;color: black;">
     <img src="../static/images/images-removebg-preview.png" style="width: 5%;height:7% ">
-    <h1 style="margin: 0;font-size: 500%;">Copa Renault</h1>
+    <h1 style="text-align: center;">Escuela Chimichanga</h1>
     <button onclick="location.href='http://127.0.0.1:5000/'">Inicio</button>
-    <button onclick="location.href='http://127.0.0.1:5000/Add_Equipo'">Equipos</button>
-    <button onclick="location.href='http://127.0.0.1:5000/Add_Match'">Partidos</button>
-    <button onclick="location.href='http://127.0.0.1:5000/Cantina'">Cantina</button>
-    <button onclick="location.href='http://127.0.0.1:5000/Add_Player'">Añadir Persona</button>
-      {% if current_user.rango=="A" %}
-      <button onclick="location.href='http://127.0.0.1:5000/Add_Staff'">Añadir Empleado</button>
+    {% if current_user.rango=="A" %}
+      <button>+</button>
       </form>
       {% else %}
   
-    <div></div>
+    <button>+</button>
     
     
       {% endif %}
