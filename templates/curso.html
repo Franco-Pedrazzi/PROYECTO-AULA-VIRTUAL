@@ -7,34 +7,40 @@
 </ul>
 
 <script>
+const id = {{ id|tojson }};
 async function loadcursos() {
     try {
-        const res = await fetch('/api/cursos');
+        const res = await fetch('/api/posts');
         const data = await res.json();
 
         if (!Array.isArray(data)) {
             console.error("Respuesta inesperada:", data);
-            alert("Error al obtener los cursos");
+            alert("Error al obtener los posts");
             return;
         }
 
         const container = document.getElementById("lista");
         container.innerHTML = "";
 
-        for (const curso of data) {
+        for (const post of data) {
+            if(post.id_curso==id){
             const div = document.createElement("div");
             div.style.marginBottom = "15px";
             div.style.border = "1px solid black";
 
             div.innerHTML = `
-                <h1 onClick="location.href='http://127.0.0.1:5000/curso/${curso.id_curso}'"><strong>Clase:</strong> ${curso.nombre}</h1>
+                <h5>${post.autor}${post.fecha_publicacion}</h5>
+                <h1>${post.titulo}</h1>
+                <h3>${post.contenido}</h3>
             `;
 
             container.appendChild(div);
+            }
+
         }
     } catch (err) {
         console.error("Error al cargar cursos:", err);
-        alert("Error al cargar cursos");
+        alert("Error al cargar cursos.");
     }
 }
 

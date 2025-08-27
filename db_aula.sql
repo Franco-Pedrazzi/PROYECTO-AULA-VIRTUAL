@@ -68,4 +68,40 @@ CREATE TABLE `verificacion` (
   PRIMARY KEY (`id`)
 );
 
+INSERT INTO usuario (nombre, email, contraseña, rango) VALUES
+("Juan Pérez", "juan@example.com", "hash123", "alumno"),
+("María Gómez", "maria@example.com", "hash456", "profesor"),
+("Carlos Ruiz", "carlos@example.com", "hash789", "alumno");
 
+-- Cursos (ya insertaste algunos, agrego más)
+INSERT INTO cursos (nombre) VALUES
+("Matemáticas"),
+("Historia"),
+("Programación");
+
+-- Posts (referencian cursos y usuarios)
+INSERT INTO posts (id_curso, titulo, contenido, autor) VALUES
+(1, "Bienvenida al curso", "Este es el post de bienvenida.", "maria@example.com"),
+(2, "Guía de estudio", "Aquí encontrarás materiales de Historia.", "juan@example.com"),
+(3, "Ejercicios de práctica", "Resolver los siguientes problemas de código.", "carlos@example.com");
+
+-- Entregas (referencian posts y usuarios)
+INSERT INTO entrega (id_post, autor) VALUES
+(2, "juan@example.com"),
+(3, "carlos@example.com"),
+(3, "juan@example.com");
+
+-- Archivos (pueden estar ligados a posts o entregas)
+INSERT INTO archivos (id_post, ruta_archivo) VALUES
+(1, "/archivos/intro.pdf"),
+(2, "/archivos/guia_historia.docx");
+
+INSERT INTO archivos (id_entrega, ruta_archivo) VALUES
+(1, "/archivos/tarea_historia_juan.pdf"),
+(2, "/archivos/ejercicio_codigo_carlos.zip");
+
+-- Comentarios (referencian posts y usuarios)
+INSERT INTO comentario (id_post, autor, contenido) VALUES
+(1, "juan@example.com", "Gracias por la bienvenida!"),
+(2, "maria@example.com", "Buen aporte, Juan."),
+(3, "juan@example.com", "Tengo dudas con el ejercicio 2.");

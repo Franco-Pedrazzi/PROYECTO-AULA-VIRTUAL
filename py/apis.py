@@ -3,10 +3,6 @@ from py.db import db   # conexión global SQLAlchemy
 
 apis = Blueprint("apis", __name__)
 
-# ============================
-# MODELOS
-# ============================
-
 class Curso(db.Model):
     __tablename__ = "cursos"
     id_curso = db.Column(db.Integer, primary_key=True, autoincrement=True)
@@ -47,11 +43,7 @@ class Comentario(db.Model):
     contenido = db.Column(db.Text)
     fecha_comentario = db.Column(db.DateTime, server_default=db.func.now())
 
-# ============================
-# RUTAS CRUD
-# ============================
 
-# -------- Cursos ----------
 @apis.route("/api/cursos", methods=["POST"])
 def add_curso():
     data = request.get_json()
@@ -90,7 +82,6 @@ def delete_curso(id):
     db.session.commit()
     return jsonify(success=True)
 
-# -------- Posts ----------
 @apis.route("/api/posts", methods=["POST"])
 def add_post():
     data = request.get_json()
@@ -143,7 +134,6 @@ def delete_post(id):
     db.session.commit()
     return jsonify(success=True)
 
-# -------- Entregas ----------
 @apis.route("/api/entregas", methods=["POST"])
 def add_entrega():
     data = request.get_json()
@@ -165,7 +155,6 @@ def get_entregas():
     ])
 
 
-# -------- Archivos ----------
 @apis.route("/api/archivos", methods=["POST"])
 def add_archivo():
     data = request.get_json()
@@ -188,7 +177,6 @@ def get_archivos():
     ])
 
 
-# -------- Comentarios ----------
 @apis.route("/api/comentarios", methods=["POST"])
 def add_comentario():
     data = request.get_json()
