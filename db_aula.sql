@@ -16,6 +16,14 @@ CREATE TABLE `cursos` (
   PRIMARY KEY (`id_curso`)
 );
 
+CREATE TABLE `cursos_:usuarios` (
+  `id_conexion` INT AUTO_INCREMENT PRIMARY key,
+  `id_curso` INT NULL,
+   `email` VARCHAR(40) NULL,
+  FOREIGN KEY (`id_curso`) REFERENCES `cursos`(`id_curso`) ON DELETE CASCADE ON UPDATE CASCADE,
+  FOREIGN KEY (`email`) REFERENCES `usuario`(`email`) ON DELETE SET NULL ON UPDATE CASCADE
+);
+
 CREATE TABLE `posts` (
   `id_post` INT AUTO_INCREMENT,
   `id_curso` INT NULL,
