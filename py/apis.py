@@ -1,6 +1,7 @@
 from flask import Blueprint, request, jsonify
-from py.db import db   # conexión global SQLAlchemy
-
+from py.db import db   
+import base64
+from flask_login import LoginManager, UserMixin, login_user, login_required, logout_user, current_user 
 apis = Blueprint("apis", __name__)
 
 class Curso(db.Model):
@@ -8,6 +9,11 @@ class Curso(db.Model):
     id_curso = db.Column(db.Integer, primary_key=True, autoincrement=True)
     nombre = db.Column(db.String(50), default="-")
 
+class CursoUsuario(db.Model):
+    __tablename__ = "cursos_usuarios"
+    id_conexion = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    id_curso = db.Column(db.Integer, db.ForeignKey("cursos.id_curso", ondelete="CASCADE", onupdate="CASCADE"))
+    email = db.Column(db.String(40), db.ForeignKey("usuario.email", ondelete="SET NULL", onupdate="CASCADE"))
 
 class Post(db.Model):
     __tablename__ = "posts"
@@ -15,7 +21,7 @@ class Post(db.Model):
     id_curso = db.Column(db.Integer, db.ForeignKey("cursos.id_curso"))
     titulo = db.Column(db.String(100), default="-")
     contenido = db.Column(db.Text)
-    autor = db.Column(db.String(40))  # FK a usuario.email
+    autor = db.Column(db.String(40))  
     fecha_publicacion = db.Column(db.DateTime, server_default=db.func.now())
 
 
@@ -23,39 +29,69 @@ class Entrega(db.Model):
     __tablename__ = "entrega"
     id_entrega = db.Column(db.Integer, primary_key=True, autoincrement=True)
     id_post = db.Column(db.Integer, db.ForeignKey("posts.id_post"))
-    autor = db.Column(db.String(40))  # FK a usuario.email
+    autor = db.Column(db.String(40))  
     fecha_entrega = db.Column(db.DateTime, server_default=db.func.now())
-
 
 class Archivo(db.Model):
     __tablename__ = "archivos"
     id_archivo = db.Column(db.Integer, primary_key=True, autoincrement=True)
     id_post = db.Column(db.Integer, db.ForeignKey("posts.id_post"))
     id_entrega = db.Column(db.Integer, db.ForeignKey("entrega.id_entrega"))
-    ruta_archivo = db.Column(db.String(255), nullable=False)
-
+    tipo = db.Column(db.String(50))
+    tamano = db.Column(db.BigInteger)
+    pixel = db.Column(db.LargeBinary) 
 
 class Comentario(db.Model):
     __tablename__ = "comentario"
     id_comentario = db.Column(db.Integer, primary_key=True, autoincrement=True)
     id_post = db.Column(db.Integer, db.ForeignKey("posts.id_post"))
-    autor = db.Column(db.String(40))  # FK a usuario.email
+    autor = db.Column(db.String(40))  
     contenido = db.Column(db.Text)
     fecha_comentario = db.Column(db.DateTime, server_default=db.func.now())
 
 
-@apis.route("/api/cursos", methods=["POST"])
-def add_curso():
-    data = request.get_json()
-    nuevo = Curso(nombre=data.get("nombre", "-"))
-    db.session.add(nuevo)
-    db.session.commit()
-    return jsonify(success=True, curso={"id_curso": nuevo.id_curso, "nombre": nuevo.nombre})
+@apis.route("/api/posts", methods=["POST"])
+def add_post():
+    id_curso = request.form.get("id_curso")
+    titulo = request.form.get("titulo", "")
+    contenido = request.form.get("contenido")
+    autor = request.form.get("autor")
+    archivo = request.files.get("archivo")
 
+    nuevo_post = Post(
+        id_curso=id_curso,
+        titulo=titulo,
+        contenido=contenido,
+        autor=autor
+    )
+    db.session.add(nuevo_post)
+    db.session.commit()
+
+    if archivo:
+        data = archivo.read() 
+        nuevo = Archivo(
+            id_post=nuevo_post.id_post,  
+            id_entrega=request.form.get("id_entrega"),
+            tipo=archivo.content_type,
+            tamano=len(data),
+            pixel=data
+        )
+        db.session.add(nuevo)
+        db.session.commit()
+
+    return jsonify(success=True, post={"id_post": nuevo_post.id_post})
 
 @apis.route("/api/cursos", methods=["GET"])
 def get_cursos():
-    cursos = Curso.query.all()
+    conexiones = CursoUsuario.query.filter_by(email=current_user.email).all()
+
+    if not conexiones:
+        return jsonify(success=False, error="No se encontraron cursos para este usuario"), 404
+
+    cursos_conectados = [cu.id_curso for cu in conexiones]
+
+    cursos = Curso.query.filter(Curso.id_curso.in_(cursos_conectados)).all()
+
     return jsonify([
         {"id_curso": c.id_curso, "nombre": c.nombre}
         for c in cursos
@@ -64,6 +100,7 @@ def get_cursos():
 
 @apis.route("/api/cursos/<int:id>", methods=["PUT"])
 def update_curso(id):
+
     curso = Curso.query.get(id)
     if not curso:
         return jsonify(success=False, error="Curso no encontrado"), 404
@@ -82,35 +119,31 @@ def delete_curso(id):
     db.session.commit()
     return jsonify(success=True)
 
-@apis.route("/api/posts", methods=["POST"])
-def add_post():
-    data = request.get_json()
-    nuevo = Post(
-        id_curso=data.get("id_curso"),
-        titulo=data.get("titulo", "-"),
-        contenido=data.get("contenido"),
-        autor=data.get("autor")
-    )
-    db.session.add(nuevo)
-    db.session.commit()
-    return jsonify(success=True, post={"id_post": nuevo.id_post, "titulo": nuevo.titulo})
 
 
 @apis.route("/api/posts", methods=["GET"])
 def get_posts():
     posts = Post.query.all()
-    return jsonify([
-        {
+    result = []
+    for p in posts:
+        archivos = [
+            {
+                "id_archivo": a.id_archivo,
+                "tipo": a.tipo,
+                "ruta": f"/uploads/{a.id_archivo}"  
+            }
+            for a in p.archivos
+        ]
+        result.append({
             "id_post": p.id_post,
             "id_curso": p.id_curso,
             "titulo": p.titulo,
             "contenido": p.contenido,
             "autor": p.autor,
-            "fecha_publicacion": p.fecha_publicacion
-        }
-        for p in posts
-    ])
-
+            "fecha_publicacion": p.fecha_publicacion,
+            "archivos": archivos
+        })
+    return jsonify(result)
 
 @apis.route("/api/posts/<int:id>", methods=["PUT"])
 def update_post(id):
@@ -155,27 +188,24 @@ def get_entregas():
     ])
 
 
-@apis.route("/api/archivos", methods=["POST"])
-def add_archivo():
-    data = request.get_json()
-    nuevo = Archivo(
-        id_post=data.get("id_post"),
-        id_entrega=data.get("id_entrega"),
-        ruta_archivo=data["ruta_archivo"]
-    )
-    db.session.add(nuevo)
-    db.session.commit()
-    return jsonify(success=True, archivo={"id_archivo": nuevo.id_archivo, "ruta_archivo": nuevo.ruta_archivo})
-
 
 @apis.route("/api/archivos", methods=["GET"])
 def get_archivos():
     archivos = Archivo.query.all()
     return jsonify([
-        {"id_archivo": a.id_archivo, "id_post": a.id_post, "id_entrega": a.id_entrega, "ruta_archivo": a.ruta_archivo}
-        for a in archivos
+        {
+            "id_archivo": a.id_archivo,
+            "id_post": a.id_post,
+            "id_entrega": a.id_entrega,
+            "tipo": a.tipo,
+            "tamano": a.tamano,
+            "pixel": base64.b64encode(a.pixel).decode("utf-8") if a.pixel else None
+        } for a in archivos
     ])
 
+@apis.route("/uploads/<path:filename>", methods=["GET"])
+def download_file(filename):
+    return send_from_directory(UPLOAD_FOLDER, filename)
 
 @apis.route("/api/comentarios", methods=["POST"])
 def add_comentario():
@@ -203,3 +233,35 @@ def get_comentarios():
         }
         for c in comentarios
     ])
+
+
+@apis.route("/api/cursos_usuarios", methods=["POST"])
+def add_curso_usuario():
+    data = request.get_json()
+    nuevo = CursoUsuario(
+        id_curso=data.get("id_curso"),
+        email=data.get("email")
+    )
+    db.session.add(nuevo)
+    db.session.commit()
+    return jsonify(success=True, conexion={
+        "id_conexion": nuevo.id_conexion,
+        "id_curso": nuevo.id_curso,
+        "email": nuevo.email
+    })
+
+
+
+def get_cursos_usuarios():
+    conexiones = CursoUsuario.query.filter_by(email=current_user.email).all()
+
+    if not conexiones:
+        return jsonify(success=False, error="No se encontraron cursos para este usuario"), 404
+
+    cursos = []
+    for cu in conexiones:
+        curso = Curso.query.get(cu.id_curso)
+        if curso:
+            cursos.append(curso.id_curso)
+
+    return cursos

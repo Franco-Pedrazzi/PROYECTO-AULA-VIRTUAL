@@ -1,6 +1,8 @@
 from flask import Flask, render_template,Blueprint, request, jsonify, redirect, url_for
 from flask_cors import CORS
 from jinja2 import TemplateNotFound
+from flask_login import LoginManager, UserMixin, login_user, login_required, logout_user, current_user 
+from py.apis import CursoUsuario  
 
 rutas = Blueprint('rutas', __name__,template_folder='templates')
 
@@ -16,10 +18,12 @@ def login_page():
 
 @rutas.route("/curso/<int:id>")
 def curso(id):
+    conexiones = CursoUsuario.query.filter_by(id_curso=id,email=current_user.email).all()
+    print(conexiones)
+    if not conexiones:
+        return render_template('error.html')
     return render_template('curso.html', id=id)
 
 
 
 
-if __name__ == "__main__":
-    rutas.run(debug=True)

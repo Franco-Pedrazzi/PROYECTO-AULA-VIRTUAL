@@ -16,7 +16,7 @@ CREATE TABLE `cursos` (
   PRIMARY KEY (`id_curso`)
 );
 
-CREATE TABLE `cursos_:usuarios` (
+CREATE TABLE `cursos_usuarios` (
   `id_conexion` INT AUTO_INCREMENT PRIMARY key,
   `id_curso` INT NULL,
    `email` VARCHAR(40) NULL,
@@ -50,7 +50,9 @@ CREATE TABLE `archivos` (
   `id_archivo` INT AUTO_INCREMENT PRIMARY KEY,
   `id_post` INT NULL,
   `id_entrega` INT NULL,
-  `ruta_archivo` VARCHAR(255) NOT NULL,
+  `tipo` VARCHAR(50),
+  `tamano` BIGINT,
+  `pixel` MEDIUMBLOB,
   FOREIGN KEY (`id_post`) REFERENCES `posts`(`id_post`) ON DELETE CASCADE,
   FOREIGN KEY (`id_entrega`) REFERENCES `entrega`(`id_entrega`) ON DELETE CASCADE
 );
@@ -78,8 +80,8 @@ CREATE TABLE `verificacion` (
 
 INSERT INTO usuario (nombre, email, contraseña, rango) VALUES
 ("Juan Pérez", "juan@example.com", "hash123", "alumno"),
-("María Gómez", "maria@example.com", "hash456", "profesor"),
-("Carlos Ruiz", "carlos@example.com", "hash789", "alumno");
+('as', 'yuro2105@gmail.com', 'scrypt:32768:8:1$oLk5Wj771FNxoARs$dfa4cf846cdb225338b6de3013696c7cb5a694e9f6217ae10dc0c2a3c54d6ea6e8e7b281ef977161d95bff79bd18448ce076430500d628c808f941794834d625', 'Profe'),
+('er', 'd48457362@alumnos.itr.edu.ar', 'scrypt:32768:8:1$Yu9uwpuSO93DECfb$dcc46ad60c57bd0f0526f81f1af234d6d9f5c6b556532b3f60de32aa8a6b71197a5b5b88a61a6bd4ea00b86420fc1082a4d796da35a3a84c61e228baac43e14e', 'A');
 
 -- Cursos (ya insertaste algunos, agrego más)
 INSERT INTO cursos (nombre) VALUES
@@ -89,27 +91,27 @@ INSERT INTO cursos (nombre) VALUES
 
 -- Posts (referencian cursos y usuarios)
 INSERT INTO posts (id_curso, titulo, contenido, autor) VALUES
-(1, "Bienvenida al curso", "Este es el post de bienvenida.", "maria@example.com"),
+(1, "Bienvenida al curso", "Este es el post de bienvenida.", "yuro2105@gmail.com"),
 (2, "Guía de estudio", "Aquí encontrarás materiales de Historia.", "juan@example.com"),
-(3, "Ejercicios de práctica", "Resolver los siguientes problemas de código.", "carlos@example.com");
+(3, "Ejercicios de práctica", "Resolver los siguientes problemas de código.", "d48457362@alumnos.itr.edu.ar");
 
 -- Entregas (referencian posts y usuarios)
 INSERT INTO entrega (id_post, autor) VALUES
 (2, "juan@example.com"),
-(3, "carlos@example.com"),
+(3, "d48457362@alumnos.itr.edu.ar"),
 (3, "juan@example.com");
 
--- Archivos (pueden estar ligados a posts o entregas)
-INSERT INTO archivos (id_post, ruta_archivo) VALUES
-(1, "/archivos/intro.pdf"),
-(2, "/archivos/guia_historia.docx");
 
-INSERT INTO archivos (id_entrega, ruta_archivo) VALUES
-(1, "/archivos/tarea_historia_juan.pdf"),
-(2, "/archivos/ejercicio_codigo_carlos.zip");
 
 -- Comentarios (referencian posts y usuarios)
 INSERT INTO comentario (id_post, autor, contenido) VALUES
 (1, "juan@example.com", "Gracias por la bienvenida!"),
-(2, "maria@example.com", "Buen aporte, Juan."),
+(2, "yuro2105@gmail.com", "Buen aporte, Juan."),
 (3, "juan@example.com", "Tengo dudas con el ejercicio 2.");
+
+
+
+INSERT INTO cursos_usuarios (id_curso, email) VALUES
+(2,"yuro2105@gmail.com"),
+(1,"yuro2105@gmail.com"),
+(1,"d48457362@alumnos.itr.edu.ar");
