@@ -126,22 +126,13 @@ def get_posts():
     posts = Post.query.all()
     result = []
     for p in posts:
-        archivos = [
-            {
-                "id_archivo": a.id_archivo,
-                "tipo": a.tipo,
-                "ruta": f"/uploads/{a.id_archivo}"  
-            }
-            for a in p.archivos
-        ]
         result.append({
             "id_post": p.id_post,
             "id_curso": p.id_curso,
             "titulo": p.titulo,
             "contenido": p.contenido,
             "autor": p.autor,
-            "fecha_publicacion": p.fecha_publicacion,
-            "archivos": archivos
+            "fecha_publicacion": p.fecha_publicacion
         })
     return jsonify(result)
 
@@ -189,13 +180,12 @@ def get_entregas():
 
 
 
-@apis.route("/api/archivos", methods=["GET"])
-def get_archivos():
-    archivos = Archivo.query.all()
+@apis.route("/api/archivos/<int:id>", methods=["GET"])
+def get_archivos(id):
+    archivos = Archivo.query.filter_by(id_post=id).all()
     return jsonify([
         {
             "id_archivo": a.id_archivo,
-            "id_post": a.id_post,
             "id_entrega": a.id_entrega,
             "tipo": a.tipo,
             "tamano": a.tamano,
@@ -203,9 +193,7 @@ def get_archivos():
         } for a in archivos
     ])
 
-@apis.route("/uploads/<path:filename>", methods=["GET"])
-def download_file(filename):
-    return send_from_directory(UPLOAD_FOLDER, filename)
+
 
 @apis.route("/api/comentarios", methods=["POST"])
 def add_comentario():
@@ -250,18 +238,23 @@ def add_curso_usuario():
         "email": nuevo.email
     })
 
-
-
-def get_cursos_usuarios():
-    conexiones = CursoUsuario.query.filter_by(email=current_user.email).all()
+@apis.route("/api/cursos_usuarios/<int:id>", methods=["GET"])
+def get_cursos_usuarios(id):
+    conexiones = CursoUsuario.query.filter_by(id_curso=id).all()
 
     if not conexiones:
         return jsonify(success=False, error="No se encontraron cursos para este usuario"), 404
 
-    cursos = []
-    for cu in conexiones:
-        curso = Curso.query.get(cu.id_curso)
-        if curso:
-            cursos.append(curso.id_curso)
+    cursos = [cu.email for cu in conexiones]
+    return jsonify(cursos)
 
-    return cursos
+
+@apis.route("/api/cursos_usuarios/<int:id>/<string:email>", methods=["DELETE"])
+def delete_cursos_usuarios(id,email):
+    conexion = CursoUsuario.query.filter_by(id_curso=id, email=email).first()
+    if not conexion:
+        return jsonify(success=False, error="conexion no encontrada"), 404
+    
+    db.session.delete(conexion)
+    db.session.commit()
+    return jsonify(success=True)

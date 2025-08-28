@@ -52,7 +52,7 @@ CREATE TABLE `archivos` (
   `id_entrega` INT NULL,
   `tipo` VARCHAR(50),
   `tamano` BIGINT,
-  `pixel` MEDIUMBLOB,
+  `pixel` LONGBLOB,
   FOREIGN KEY (`id_post`) REFERENCES `posts`(`id_post`) ON DELETE CASCADE,
   FOREIGN KEY (`id_entrega`) REFERENCES `entrega`(`id_entrega`) ON DELETE CASCADE
 );
@@ -81,7 +81,7 @@ CREATE TABLE `verificacion` (
 INSERT INTO usuario (nombre, email, contraseña, rango) VALUES
 ("Juan Pérez", "juan@example.com", "hash123", "alumno"),
 ('as', 'yuro2105@gmail.com', 'scrypt:32768:8:1$oLk5Wj771FNxoARs$dfa4cf846cdb225338b6de3013696c7cb5a694e9f6217ae10dc0c2a3c54d6ea6e8e7b281ef977161d95bff79bd18448ce076430500d628c808f941794834d625', 'Profe'),
-('er', 'd48457362@alumnos.itr.edu.ar', 'scrypt:32768:8:1$Yu9uwpuSO93DECfb$dcc46ad60c57bd0f0526f81f1af234d6d9f5c6b556532b3f60de32aa8a6b71197a5b5b88a61a6bd4ea00b86420fc1082a4d796da35a3a84c61e228baac43e14e', 'A');
+('er', 'd48457362@alumnos.itr.edu.ar', 'scrypt:32768:8:1$Yu9uwpuSO93DECfb$dcc46ad60c57bd0f0526f81f1af234d6d9f5c6b556532b3f60de32aa8a6b71197a5b5b88a61a6bd4ea00b86420fc1082a4d796da35a3a84c61e228baac43e14e', 'Profe');
 
 -- Cursos (ya insertaste algunos, agrego más)
 INSERT INTO cursos (nombre) VALUES
@@ -114,4 +114,5 @@ INSERT INTO comentario (id_post, autor, contenido) VALUES
 INSERT INTO cursos_usuarios (id_curso, email) VALUES
 (2,"yuro2105@gmail.com"),
 (1,"yuro2105@gmail.com"),
+(1,"juan@example.com"),
 (1,"d48457362@alumnos.itr.edu.ar");
