@@ -1,292 +1,126 @@
-
-
+@font-face {
+    font-family: "Product Sans";
+    src: url("ProductSans-Light.ttf") format("truetype");
+}
 body {
-  font-family: NouvelR\, sans-serif;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
-  background-color:#222222;
-  color: white;
-  border-color: white;
+    font-family: 'Segoe UI', Tahoma, sans-serif;
+    margin: 0;
+    padding: 0;
+    background-color: #f7f9fc;
+    color: #333;
 }
 
-div {
-	display: grid;
-	place-content: center;
+/* Navbar */
+nav {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background-color: #1e88e5;
+    color: white;
+    padding: 10px 20px;
+    position: sticky;
+    top: 0;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
 }
 
-input[type=text],input[type=email],input[type=password] {
-  background-color: #222222;
-	appearance: none;
-	border: none;
-	outline: none;
-	border-bottom: .2em solid #ffda34;
-	background: rgba(#000000, .2);
-	border-radius: .2em .2em 0 0;
-	padding: .4em;
-	color: #ffda34;;
-}
-
-select{
-  background-color: #222222;
-	border: .2em solid #ffda34;
-	background: rgba(#000000, .2);
-	border-radius: .2em .2em 0 0;
-	padding: .4em;
-	color: #ffda34;;
-	
-}
-
-input[type=checkbox] {
-	appearance: none;
-  background-color: #222222;
-  margin: 0;
-	font: inherit;
-  color: currentColor;
-  width: 1.15em;
-  height: 1.15em;
-  border: 0.15em solid #ffda34;
-  border-radius: 0.15em;
-  transform: translateY(-0.075em);
-	display: grid;
-  place-content: center;
-	&::before {
-		content: "";
-		width: 0.65em;
-		height: 0.65em;
-		transform: scale(0);
-		transition: 120ms transform ease-in-out;
-		box-shadow: inset 1em 1em #ffda34;
-		background-color: black;
-		clip-path: polygon(14% 44%, 0 65%, 50% 100%, 100% 16%, 80% 0%, 43% 62%);
-		transform-origin: left top;
-	}
-	&:checked::before {
-		transform: scale(1);
-	}
-}
-
-
-
-input[type=color] { 
-  background-color: #222222;
-	padding: 0;
-	border: none;
-	width: 2em;
-	height: 2em;
-	border-radius: 50%;
-	&::-webkit-color-swatch {
-		border: none;
-		border-radius: 50%;
-	}
-	&::-webkit-color-swatch-wrapper {
-		padding: 0;
-	}
-}
-
-
-button,
-input[type=submit] {
-    appearance: none;
-    border: .2em solid #ffda34;
-    background: hsl(0 0% 0% / 0);
-    padding: .85em 1.5em;
-    color: #ffda34;
-    border-radius: 2em;
-    transition: 1s;
-}
-
-button:hover,
-button:focus,
-button:active,
-input[type=submit]:hover,
-input[type=submit]:focus,
-input[type=submit]:active {
-    background: #ffda34;
-    color: #000000;
-}
-
-/* Segunda regla */
-nav button,
-td button {
-    appearance: none;
-    border: .2em solid #000000;
-    background: hsla(61, 100%, 57%, 0);
-    padding: .85em 1.5em;
-    color: #000000;
-    border-radius: 2em;
-    transition: 1s;
-}
-
-nav button:hover,
-nav button:focus,
-nav button:active,
-td button:hover,
-td button:focus,
-td button:active {
-    background: #000000;
-    color: #ffda34;
-}
-input[type=file] { display: none; }
-label[for=file] {
-  background-color: #222222;
-	display: grid;
-	grid-auto-flow: column;
-	grid-gap: .5em;
-	justify-items: center;
-	align-content: center;
-	color: #ffda34;;
-	border: .2em solid #ffda34;
-	background: hsl(0 0 0/0);
-	padding: .85em 1.5em;
-	color: #ffda34;;
-	border-radius: 2em;
-	transition: 1s;
-	&:hover, &:focus, &:active {
-		background: #ffda34;
-		color: #000000;
-	}
-}
-
-input[type=date],input[type=time] {
-  background-color: #222222;
-	border: .2em solid #ffda34;
-	padding: .5em .6em;
-	border-radius: 2em;
-	color: #ffda34;
-	&::-webkit-datetime-edit { padding: 1em; }
-	&::-webkit-datetime-edit-fields-wrapper { background: rgba(#ffda34, .2); }
-	&::-webkit-datetime-edit-text { color: #ffda34; padding: 0 0.3em; }
-	&::-webkit-datetime-edit-month-field { color: #ffda34;; }
-	&::-webkit-datetime-edit-day-field { color: #ffda34;; }
-	&::-webkit-datetime-edit-year-field { color: #ffda34;; }
-	&::-webkit-inner-spin-button { color: #ffda34;; }
-  &::-webkit-calendar-picker-indicator {background-color: #ffda34;}
-}
-
-input[type=number] {
-  background-color: #222222;
-	width: 3em;
-	padding: 0.5em;
-	border: .2em solid #ffda34;
-	border-radius: 1em;
-	text-align: center;
-	color: #ffda34;;
-	appearance: textfield;
-	margin: 0;
-	&::-webkit-inner-spin-button {
-		background-color: #ffda34;
-	}
-}
-
-
-
-.table-wrapper{
-    margin: 10px 70px 70px;
-    box-shadow: 0px 35px 50px rgba( 0, 0, 0, 0.2 );
-}
-
-table {
-	
-	color: #000000;
-    border-radius: 5px;
-    font-size: 20px;
-    font-weight: normal;
-    border: none;
-    border-collapse: collapse;
-    width: 100%;
-    max-width: 100%;
-    white-space: nowrap;
-    background-color: white;
-}
-
-table td, table th {
+nav h1 {
+    font-family: "Product Sans", sans-serif;
+    letter-spacing: 1px;
+    font-size: 1.5rem;
+    font-weight: bold;
     text-align: center;
+}
+
+nav h1:hover {
+    text-decoration: underline;
+    cursor: pointer;
+    color: #bbdefb;
+}
+
+nav div {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+nav button {
+    background: white;
+    color: #1e88e5;
+    border: none;
+    border-radius: 5px;
+    padding: 8px 14px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: 0.3s;
+}
+
+nav button:hover {
+    background: #e3f2fd;
+}
+
+/* Contenedor general */
+.container {
+    width: 90%;
+    max-width: 1200px;
+    margin: 20px auto;
+}
+
+/* Lista de cursos en tarjetas */
+#lista {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 20px;
+}
+
+#lista div {
+    background-color: white;
+    border-radius: 10px;
+    padding: 15px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    cursor: pointer;
+    transition: transform 0.2s ease-in-out;
+}
+
+#lista div:hover {
+    transform: translateY(-5px);
+    background: #f1faff;
+}
+
+#lista h1 {
+    font-size: 1.2rem;
+    margin-bottom: 8px;
+    color: #1e88e5;
+}
+
+/* Botones de acción */
+button {
+    background-color: #1e88e5;
+    color: white;
+    border: none;
+    padding: 10px 16px;
+    border-radius: 6px;
+    font-size: 14px;
+    cursor: pointer;
+    transition: background 0.3s ease;
+}
+
+button:hover {
+    background-color: #1565c0;
+}
+
+/* Formulario de crear curso y unirse */
+#form-curso, #codigo_curso {
+    margin-top: 15px;
+    padding: 15px;
+    max-width: fit-content;
+}
+
+input, select {
     padding: 8px;
-}
-
-table td {
-    border-right: 1px solid #000000;
-    font-size: 20px;
-}
-
-table thead th {
-    color: #000000;
-    background: #ffda34;
-}
-
-
-table thead th:nth-child(odd) {
-    color: #000000;
-    background: #ffda34;
-}
-
-table tr:nth-child(even) {
-    background: #959595;
-}
-
-/* Responsive */
-
-@media (max-width: 767px) {
-    table {
-        display: block;
-        width: 100%;
-    }
-    .table-wrapper:before{
-        content: "Scroll horizontally >";
-        display: block;
-        text-align: right;
-        font-size: 11px;
-        color: rgb(0, 0, 0);
-        padding: 0 0 10px;
-    }
-    table thead, table tbody, table thead th {
-        display: block;
-    }
-    table thead th:last-child{
-        border-bottom: none;
-    }
-    table thead {
-        float: left;
-    }
-    table tbody {
-        width: auto;
-        position: relative;
-        overflow-x: auto;
-    }
-    table td, table th {
-        padding: 20px .625em .625em .625em;
-        height: 60px;
-        vertical-align: middle;
-        box-sizing: border-box;
-        overflow-x: hidden;
-        overflow-y: auto;
-        width: 120px;
-        font-size: 13px;
-        text-overflow: ellipsis;
-    }
-    table thead th {
-        text-align: left;
-        border-bottom: 1px solid #000000;
-    }
-    table tbody tr {
-        display: table-cell;
-    }
-    table tbody tr:nth-child(odd) {
-        background: none;
-    }
-    table tr:nth-child(even) {
-        background: transparent;
-    }
-    table tr td:nth-child(odd) {
-        background: #F8F8F8;
-        border-right: 1px solid #000000;
-    }
-    table tr td:nth-child(even) {
-        border-right: 1px solid #000000;
-    }
-    table tbody td {
-        display: block;
-        text-align: center;
-    }
+    width: 100%;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+    margin-top: 5px;
+    margin-bottom: 10px;
+    font-size: 14px;
 }
