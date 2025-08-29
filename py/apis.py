@@ -1,13 +1,20 @@
 from flask import Blueprint, request, jsonify
 from py.db import db   
 import base64
-from flask_login import LoginManager, UserMixin, login_user, login_required, logout_user, current_user 
+from flask_login import LoginManager, UserMixin, login_user, login_required, logout_user, current_user
+import random
+import string
+
+def generar_codigo():
+    return ''.join(random.choices(string.ascii_uppercase + string.digits, k=6))
+ 
 apis = Blueprint("apis", __name__)
 
 class Curso(db.Model):
     __tablename__ = "cursos"
     id_curso = db.Column(db.Integer, primary_key=True, autoincrement=True)
     nombre = db.Column(db.String(50), default="-")
+    codigo = db.Column(db.String(20), unique=True)
 
 class CursoUsuario(db.Model):
     __tablename__ = "cursos_usuarios"
@@ -96,6 +103,65 @@ def get_cursos():
         {"id_curso": c.id_curso, "nombre": c.nombre}
         for c in cursos
     ])
+
+@apis.route("/api/cursos", methods=["POST"])
+def add_curso():
+    if not current_user.is_authenticated:
+        return jsonify(success=False, error="Debes iniciar sesión"), 401
+    if current_user.rango != "Profe":
+        return jsonify(success=False, error="No autorizado"), 403
+
+    data = request.get_json()
+    nombre = data.get("nombre")
+    if not nombre:
+        return jsonify(success=False, error="Falta el nombre del curso"), 400
+
+    # Generar código único
+    codigo = generar_codigo()
+    while Curso.query.filter_by(codigo=codigo).first():
+        codigo = generar_codigo()
+
+    nuevo_curso = Curso(nombre=nombre, codigo=codigo)
+    db.session.add(nuevo_curso)
+    db.session.commit()
+
+    # Vincular al profesor
+    nuevo_conexion = CursoUsuario(id_curso=nuevo_curso.id_curso, email=current_user.email)
+    db.session.add(nuevo_conexion)
+    db.session.commit()
+
+    return jsonify(success=True, curso={
+        "id_curso": nuevo_curso.id_curso,
+        "nombre": nuevo_curso.nombre,
+        "codigo": nuevo_curso.codigo
+    })
+    
+@apis.route("/api/unirse", methods=["POST"])
+def unirse_curso():
+    if not current_user.is_authenticated:
+        return jsonify(success=False, error="Debes iniciar sesión"), 401
+    if current_user.rango != "Alumno":
+        return jsonify(success=False, error="Solo los alumnos pueden unirse"), 403
+
+    data = request.get_json()
+    codigo = data.get("codigo")
+    if not codigo:
+        return jsonify(success=False, error="Falta el código"), 400
+
+    curso = Curso.query.filter_by(codigo=codigo).first()
+    if not curso:
+        return jsonify(success=False, error="Código inválido"), 404
+
+    # Verificar si ya está en el curso
+    if CursoUsuario.query.filter_by(id_curso=curso.id_curso, email=current_user.email).first():
+        return jsonify(success=False, error="Ya estás en este curso"), 400
+
+    # Crear conexión
+    conexion = CursoUsuario(id_curso=curso.id_curso, email=current_user.email)
+    db.session.add(conexion)
+    db.session.commit()
+
+    return jsonify(success=True, mensaje="Te uniste al curso", curso={"id_curso": curso.id_curso, "nombre": curso.nombre})
 
 
 @apis.route("/api/cursos/<int:id>", methods=["PUT"])

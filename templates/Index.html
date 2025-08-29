@@ -4,7 +4,23 @@
 
 <ul id="lista">
 
+    {% if current_user.rango == "Profe" %}
+        <button onclick="mostrarFormulario()">+ Crear Curso</button>
+        <div id="form-curso" style="display:none; margin-top:10px;">
+            <input type="text" id="nombre_curso" placeholder="Nombre del curso">
+            <button onclick="crearCurso()">Crear</button>
+        </div>
+    {% endif %}
+
+
 </ul>
+
+{% if current_user.rango == "Alumno" %}
+<div style="margin-top:20px;">
+    <input type="text" id="codigo_curso" placeholder="Código del curso">
+    <button onclick="unirseCurso()">Unirse</button>
+</div>
+{% endif %}
 
 <script>
 async function loadcursos() {
@@ -37,6 +53,71 @@ async function loadcursos() {
         alert("Error al cargar cursos");
     }
 }
+
+function mostrarFormulario() {
+    document.getElementById("form-curso").style.display = "block";
+}
+
+async function crearCurso() {
+    const nombre = document.getElementById("nombre_curso").value;
+    if (!nombre) {
+        alert("Falta el nombre del curso");
+        return;
+    }
+
+    try {
+        const res = await fetch("/api/cursos", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({ nombre })
+        });
+
+        const data = await res.json();
+        if (data.success) {
+            alert("Curso creado correctamente");
+            loadcursos(); // recargar lista
+            document.getElementById("form-curso").style.display = "none";
+            document.getElementById("nombre_curso").value = "";
+        } else {
+            alert("Error: " + data.error);
+        }
+    } catch (err) {
+        console.error("Error creando curso:", err);
+        alert("Error al crear el curso");
+    }
+}
+
+async function unirseCurso() {
+    const codigo = document.getElementById("codigo_curso").value;
+    if (!codigo) {
+        alert("Ingresa un código");
+        return;
+    }
+
+    try {
+        const res = await fetch("/api/unirse", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({ codigo })
+        });
+
+        const data = await res.json();
+        if (data.success) {
+            alert("Te uniste al curso: " + data.curso.nombre);
+            loadcursos();
+        } else {
+            alert("Error: " + data.error);
+        }
+    } catch (err) {
+        console.error("Error uniendo al curso:", err);
+        alert("Error en el servidor");
+    }
+}
+
 
 function entrar(){
 

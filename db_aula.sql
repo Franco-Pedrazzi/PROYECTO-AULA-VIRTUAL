@@ -13,6 +13,7 @@ CREATE TABLE `usuario` (
 CREATE TABLE `cursos` (
   `id_curso` INT AUTO_INCREMENT,
   `nombre` VARCHAR(50) NULL DEFAULT '-',
+  `codigo` VARCHAR(20) UNIQUE,
   PRIMARY KEY (`id_curso`)
 );
 

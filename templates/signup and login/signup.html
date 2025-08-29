@@ -6,7 +6,12 @@
     <p>Nombre:<input class="form__field"  id="Nombre" type="text"></p>
     <p>Email:<input class="form__field"  id="Email" type="text"></p>
     <p>Contraseña:<input class="form__field" id="Contraseña" type="password"></p>
-
+    <p>Rango:
+        <select id="Rango">
+            <option value="Alumno">Alumno</option>
+            <option value="Profe">Profesor</option>
+        </select>
+    </p>
     <button onclick="signup()">Signup</button>
 </div>
 
@@ -25,18 +30,21 @@
         const Nombre = document.getElementById('Nombre').value;
         const Email = document.getElementById('Email').value;
         const Contraseña = document.getElementById('Contraseña').value;
+        const Rango = document.getElementById('Rango').value;
 
-        fetch('/signup', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-                Nombre: Nombre,
-                Email: Email,
-                Contraseña: Contraseña
+
+            fetch('/signup', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                    body: JSON.stringify({
+                        Nombre: Nombre,
+                        Email: Email,
+                        Contraseña: Contraseña,
+                        Rango: Rango
+                })
             })
-        })
             .then(res => res.json())
             .then(data => {
                 if (!data.success) {
