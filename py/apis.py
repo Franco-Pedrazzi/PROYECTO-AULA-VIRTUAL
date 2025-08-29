@@ -12,20 +12,19 @@ apis = Blueprint("apis", __name__)
 
 class Curso(db.Model):
     __tablename__ = "cursos"
-    id_curso = db.Column(db.Integer, primary_key=True, autoincrement=True)
     nombre = db.Column(db.String(50), default="-")
-    codigo = db.Column(db.String(20), unique=True)
+    codigo = db.Column(db.String(20),  primary_key=True)
 
 class CursoUsuario(db.Model):
     __tablename__ = "cursos_usuarios"
     id_conexion = db.Column(db.Integer, primary_key=True, autoincrement=True)
-    id_curso = db.Column(db.Integer, db.ForeignKey("cursos.id_curso", ondelete="CASCADE", onupdate="CASCADE"))
+    codigo = db.Column(db.String(20), db.ForeignKey("cursos.codigo", ondelete="CASCADE", onupdate="CASCADE"))
     email = db.Column(db.String(40), db.ForeignKey("usuario.email", ondelete="SET NULL", onupdate="CASCADE"))
 
 class Post(db.Model):
     __tablename__ = "posts"
     id_post = db.Column(db.Integer, primary_key=True, autoincrement=True)
-    id_curso = db.Column(db.Integer, db.ForeignKey("cursos.id_curso"))
+    codigo = db.Column(db.String(20), db.ForeignKey("cursos.codigo"))
     titulo = db.Column(db.String(100), default="-")
     contenido = db.Column(db.Text)
     autor = db.Column(db.String(40))  
@@ -59,14 +58,14 @@ class Comentario(db.Model):
 
 @apis.route("/api/posts", methods=["POST"])
 def add_post():
-    id_curso = request.form.get("id_curso")
+    codigo = request.form.get("codigo")
     titulo = request.form.get("titulo", "")
     contenido = request.form.get("contenido")
     autor = request.form.get("autor")
     archivo = request.files.get("archivo")
 
     nuevo_post = Post(
-        id_curso=id_curso,
+        codigo=codigo,
         titulo=titulo,
         contenido=contenido,
         autor=autor
@@ -95,12 +94,12 @@ def get_cursos():
     if not conexiones:
         return jsonify(success=False, error="No se encontraron cursos para este usuario"), 404
 
-    cursos_conectados = [cu.id_curso for cu in conexiones]
+    cursos_conectados = [cu.codigo for cu in conexiones]
 
-    cursos = Curso.query.filter(Curso.id_curso.in_(cursos_conectados)).all()
+    cursos = Curso.query.filter(Curso.codigo.in_(cursos_conectados)).all()
 
     return jsonify([
-        {"id_curso": c.id_curso, "nombre": c.nombre}
+        {"codigo": c.codigo, "nombre": c.nombre}
         for c in cursos
     ])
 
@@ -116,7 +115,6 @@ def add_curso():
     if not nombre:
         return jsonify(success=False, error="Falta el nombre del curso"), 400
 
-    # Generar código único
     codigo = generar_codigo()
     while Curso.query.filter_by(codigo=codigo).first():
         codigo = generar_codigo()
@@ -125,13 +123,11 @@ def add_curso():
     db.session.add(nuevo_curso)
     db.session.commit()
 
-    # Vincular al profesor
-    nuevo_conexion = CursoUsuario(id_curso=nuevo_curso.id_curso, email=current_user.email)
+    nuevo_conexion = CursoUsuario(codigo=nuevo_curso.codigo, email=current_user.email)
     db.session.add(nuevo_conexion)
     db.session.commit()
 
     return jsonify(success=True, curso={
-        "id_curso": nuevo_curso.id_curso,
         "nombre": nuevo_curso.nombre,
         "codigo": nuevo_curso.codigo
     })
@@ -152,16 +148,14 @@ def unirse_curso():
     if not curso:
         return jsonify(success=False, error="Código inválido"), 404
 
-    # Verificar si ya está en el curso
-    if CursoUsuario.query.filter_by(id_curso=curso.id_curso, email=current_user.email).first():
+    if CursoUsuario.query.filter_by(codigo=curso.codigo, email=current_user.email).first():
         return jsonify(success=False, error="Ya estás en este curso"), 400
 
-    # Crear conexión
-    conexion = CursoUsuario(id_curso=curso.id_curso, email=current_user.email)
+    conexion = CursoUsuario(codigo=curso.codigo, email=current_user.email)
     db.session.add(conexion)
     db.session.commit()
 
-    return jsonify(success=True, mensaje="Te uniste al curso", curso={"id_curso": curso.id_curso, "nombre": curso.nombre})
+    return jsonify(success=True, mensaje="Te uniste al curso", curso={"codigo": curso.codigo, "nombre": curso.nombre})
 
 
 @apis.route("/api/cursos/<int:id>", methods=["PUT"])
@@ -194,7 +188,7 @@ def get_posts():
     for p in posts:
         result.append({
             "id_post": p.id_post,
-            "id_curso": p.id_curso,
+            "codigo": p.codigo,
             "titulo": p.titulo,
             "contenido": p.contenido,
             "autor": p.autor,
@@ -202,15 +196,15 @@ def get_posts():
         })
     return jsonify(result)
 
-@apis.route("/api/posts/<int:id>", methods=["PUT"])
-def update_post(id):
-    post = Post.query.get(id)
+@apis.route("/api/posts/<string:codigo>", methods=["PUT"])
+def update_post(codigo):
+    post = Post.query.get(codigo)
     if not post:
         return jsonify(success=False, error="Post no encontrado"), 404
     data = request.get_json()
     post.titulo = data.get("titulo", post.titulo)
     post.contenido = data.get("contenido", post.contenido)
-    post.id_curso = data.get("id_curso", post.id_curso)
+    post.codigo = data.get("codigo", post.codigo)
     db.session.commit()
     return jsonify(success=True)
 
@@ -293,20 +287,20 @@ def get_comentarios():
 def add_curso_usuario():
     data = request.get_json()
     nuevo = CursoUsuario(
-        id_curso=data.get("id_curso"),
+        codigo=data.get("codigo"),
         email=data.get("email")
     )
     db.session.add(nuevo)
     db.session.commit()
     return jsonify(success=True, conexion={
         "id_conexion": nuevo.id_conexion,
-        "id_curso": nuevo.id_curso,
+        "codigo": nuevo.codigo,
         "email": nuevo.email
     })
 
-@apis.route("/api/cursos_usuarios/<int:id>", methods=["GET"])
-def get_cursos_usuarios(id):
-    conexiones = CursoUsuario.query.filter_by(id_curso=id).all()
+@apis.route("/api/cursos_usuarios/<string:codigo>", methods=["GET"])
+def get_cursos_usuarios(codigo):
+    conexiones = CursoUsuario.query.filter_by(codigo=codigo).all()
 
     if not conexiones:
         return jsonify(success=False, error="No se encontraron cursos para este usuario"), 404
@@ -315,9 +309,9 @@ def get_cursos_usuarios(id):
     return jsonify(cursos)
 
 
-@apis.route("/api/cursos_usuarios/<int:id>/<string:email>", methods=["DELETE"])
-def delete_cursos_usuarios(id,email):
-    conexion = CursoUsuario.query.filter_by(id_curso=id, email=email).first()
+@apis.route("/api/cursos_usuarios/<string:codigo>/<string:email>", methods=["DELETE"])
+def delete_cursos_usuarios(codigo,email):
+    conexion = CursoUsuario.query.filter_by(codigo=codigo, email=email).first()
     if not conexion:
         return jsonify(success=False, error="conexion no encontrada"), 404
     

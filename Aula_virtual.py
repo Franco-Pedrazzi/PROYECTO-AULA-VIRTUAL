@@ -18,7 +18,7 @@ from py.db import db
 app = Flask(__name__)
 CORS(app)
 
-app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+pymysql://root:461315@localhost/aula'
+app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+pymysql://root:123456@localhost/aula'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.secret_key = 'secret'
 
@@ -85,10 +85,10 @@ def signup():
     nombre = data.get("Nombre")
     email = data.get("Email")
     contraseña = data.get("Contraseña")
-    rango = data.get("Rango")  # <--- ahora viene del frontend
+    rango = data.get("Rango") 
 
     if rango not in ["Alumno", "Profe"]:
-        rango = "Alumno"  # fallback por seguridad
+        rango = "Alumno" 
 
     usuario = Usuario.query.filter_by(email=email).first()
     if not (nombre and email and contraseña):

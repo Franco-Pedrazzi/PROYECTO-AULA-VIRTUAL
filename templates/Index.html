@@ -1,128 +1,128 @@
 {% extends "./base.html" %}
 
 {% block body %}
+    {% if current_user.rango == "Profe" %}
+    <button onclick="mostrarFormulario()">+ Crear Curso</button>
+    <div id="form-curso" style="display:none; margin-top:10px;">
+        <input type="text" id="nombre_curso" placeholder="Nombre del curso">
+        <button onclick="crearCurso()">Crear</button>
+    </div>
+    {% endif %}
 
 <ul id="lista">
 
-    {% if current_user.rango == "Profe" %}
-        <button onclick="mostrarFormulario()">+ Crear Curso</button>
-        <div id="form-curso" style="display:none; margin-top:10px;">
-            <input type="text" id="nombre_curso" placeholder="Nombre del curso">
-            <button onclick="crearCurso()">Crear</button>
-        </div>
-    {% endif %}
 
 
 </ul>
 
 
-    <div style="margin-top:20px;">
-        <input type="text" id="codigo_curso" placeholder="Código del curso">
-        <button onclick="unirseCurso()">Unirse</button>
-    </div>
+<div style="margin-top:20px;">
+    <input type="text" id="codigo_curso" placeholder="Código del curso">
+    <button onclick="unirseCurso()">Unirse</button>
+</div>
 
 
 <script>
-async function loadcursos() {
-    try {
-        const res = await fetch('/api/cursos');
-        const data = await res.json();
+    async function loadcursos() {
+        try {
+            const res = await fetch('/api/cursos');
+            const data = await res.json();
 
-        if (!Array.isArray(data)) {
-            console.error("Respuesta inesperada:", data);
-            alert("Error al obtener los cursos");
+            if (!Array.isArray(data)) {
+                console.error("Respuesta inesperada:", data);
+                alert("Error al obtener los cursos");
+                return;
+            }
+
+            const container = document.getElementById("lista");
+            container.innerHTML = "";
+
+            for (const curso of data) {
+                const div = document.createElement("div");
+                div.style.marginBottom = "15px";
+                div.style.border = "1px solid black";
+
+                div.innerHTML = `
+                <h1 onClick="location.href='http://127.0.0.1:5000/curso/${curso.codigo}'"><strong>Clase:</strong> ${curso.nombre}</h1>
+            `;
+
+                container.appendChild(div);
+            }
+        } catch (err) {
+            console.error("Error al cargar cursos:", err);
+            alert("Error al cargar cursos");
+        }
+    }
+
+    function mostrarFormulario() {
+        document.getElementById("form-curso").style.display = "block";
+    }
+
+    async function crearCurso() {
+        const nombre = document.getElementById("nombre_curso").value;
+        if (!nombre) {
+            alert("Falta el nombre del curso");
             return;
         }
 
-        const container = document.getElementById("lista");
-        container.innerHTML = "";
+        try {
+            const res = await fetch("/api/cursos", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({ nombre })
+            });
 
-        for (const curso of data) {
-            const div = document.createElement("div");
-            div.style.marginBottom = "15px";
-            div.style.border = "1px solid black";
-
-            div.innerHTML = `
-                <h1 onClick="location.href='http://127.0.0.1:5000/curso/${curso.id_curso}'"><strong>Clase:</strong> ${curso.nombre}</h1>
-            `;
-
-            container.appendChild(div);
+            const data = await res.json();
+            if (data.success) {
+                alert("Curso creado correctamente");
+                loadcursos();
+                document.getElementById("form-curso").style.display = "none";
+                document.getElementById("nombre_curso").value = "";
+            } else {
+                alert("Error: " + data.error);
+            }
+        } catch (err) {
+            console.error("Error creando curso:", err);
+            alert("Error al crear el curso");
         }
-    } catch (err) {
-        console.error("Error al cargar cursos:", err);
-        alert("Error al cargar cursos");
-    }
-}
-
-function mostrarFormulario() {
-    document.getElementById("form-curso").style.display = "block";
-}
-
-async function crearCurso() {
-    const nombre = document.getElementById("nombre_curso").value;
-    if (!nombre) {
-        alert("Falta el nombre del curso");
-        return;
     }
 
-    try {
-        const res = await fetch("/api/cursos", {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json"
-            },
-            body: JSON.stringify({ nombre })
-        });
-
-        const data = await res.json();
-        if (data.success) {
-            alert("Curso creado correctamente");
-            loadcursos(); // recargar lista
-            document.getElementById("form-curso").style.display = "none";
-            document.getElementById("nombre_curso").value = "";
-        } else {
-            alert("Error: " + data.error);
+    async function unirseCurso() {
+        const codigo = document.getElementById("codigo_curso").value;
+        if (!codigo) {
+            alert("Ingresa un código");
+            return;
         }
-    } catch (err) {
-        console.error("Error creando curso:", err);
-        alert("Error al crear el curso");
-    }
-}
 
-async function unirseCurso() {
-    const codigo = document.getElementById("codigo_curso").value;
-    if (!codigo) {
-        alert("Ingresa un código");
-        return;
-    }
+        try {
+            const res = await fetch("/api/unirse", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({ codigo })
+            });
 
-    try {
-        const res = await fetch("/api/unirse", {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json"
-            },
-            body: JSON.stringify({ codigo })
-        });
-
-        const data = await res.json();
-        if (data.success) {
-            alert("Te uniste al curso: " + data.curso.nombre);
-            loadcursos();
-        } else {
-            alert("Error: " + data.error);
+            const data = await res.json();
+            if (data.success) {
+                alert("Te uniste al curso: " + data.curso.nombre);
+                loadcursos();
+            } else {
+                alert("Error: " + data.error);
+            }
+        } catch (err) {
+            console.error("Error uniendo al curso:", err);
+            alert("Error en el servidor");
         }
-    } catch (err) {
-        console.error("Error uniendo al curso:", err);
-        alert("Error en el servidor");
     }
-}
 
 
-function entrar(){
+    function entrar() {
 
-}
+    }
 
-window.onload = loadcursos;
+    window.onload = loadcursos;
 </script>
 {% endblock %}

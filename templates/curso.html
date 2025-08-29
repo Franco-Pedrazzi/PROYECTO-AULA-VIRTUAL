@@ -3,9 +3,7 @@
 {% block body %}
 
 {% if current_user.rango == "Profe" %}
-<div id="personas">
-    <h1>id_clase={{ id }}</h1>
-</div>
+    <h1>{{codigo}}</h1>
 {% endif %}
 </div>
 
@@ -30,27 +28,27 @@
 
 <script>
     const usuarioRango = "{{ current_user.rango }}";
-    const id = {{ id| tojson }};
+    const codigo = {{ codigo| tojson }};
 
     function handle() {
         var button = document.getElementById("handleButton");
         const text = button.innerText
 
-        var chat= document.getElementById("chat");
+        var chat = document.getElementById("chat");
 
-        var people= document.getElementById("personas");
+        var people = document.getElementById("personas");
 
 
-    if (button.innerText !== "chat") {
-        button.innerText = "chat";
-        chat.style.display = "none";
-        people.style.display = "block";
-    } else {
-        button.innerText = "inscriptos";
-        chat.style.display = "block";
-        people.style.display = "none";
+        if (button.innerText !== "chat") {
+            button.innerText = "chat";
+            chat.style.display = "none";
+            people.style.display = "block";
+        } else {
+            button.innerText = "inscriptos";
+            chat.style.display = "block";
+            people.style.display = "none";
+        }
     }
-}
 
     async function loadposts() {
         try {
@@ -68,7 +66,7 @@
             container.innerHTML = "";
 
             for (const post of data) {
-                if (post.id_curso == id) {
+                if (post.codigo == codigo) {
                     const div = document.createElement("div");
                     div.style.marginBottom = "15px";
                     div.style.border = "1px solid black";
@@ -158,9 +156,9 @@
         }
     }
 
-    async function loadpeople(){
+    async function loadpeople() {
         try {
-            const res = await fetch(`/api/cursos_usuarios/${id}`);
+            const res = await fetch(`/api/cursos_usuarios/${codigo}`);
             const data = await res.json();
 
             if (!Array.isArray(data)) {
@@ -173,21 +171,21 @@
             container.innerHTML = "";
 
             for (const email of data) {
-                    const div = document.createElement("div");
-                    div.style.marginBottom = "15px";
-                    div.style.border = "1px solid black";
+                const div = document.createElement("div");
+                div.style.marginBottom = "15px";
+                div.style.border = "1px solid black";
 
-                    div.innerHTML = `
+                div.innerHTML = `
                     <h1>${email}</h1>
                 `;
 
-                    if (usuarioRango == "Profe") {
-                        div.innerHTML += `
+                if (usuarioRango == "Profe") {
+                    div.innerHTML += `
     <button onclick="delete_people('${email}')">echar</button>
                     `;
-                    }
+                }
 
-                    container.appendChild(div);
+                container.appendChild(div);
             }
         } catch (err) {
             console.error("Error al cargar people:", err);
@@ -195,24 +193,24 @@
         }
     }
 
-function delete_people(email) {
-    if (!confirm('¿Seguro que querés eliminar este usuario?')) return;
+    function delete_people(email) {
+        if (!confirm('¿Seguro que querés eliminar este usuario?')) return;
 
-    fetch(`/api/cursos_usuarios/${id}/${email}`, { 
-        method: 'DELETE'
-    })
-    .then(res => res.json())
-    .then(data => {
-        if (data.success) {
-            loadpeople();  
-        } else {
-            alert("Error al eliminar: " + data.error);
-        }
-    })
-    .catch(error => {
-        console.error("Error al eliminar usuario:", error);
-    });
-}
+        fetch(`/api/cursos_usuarios/${codigo}/${email}`, {
+            method: 'DELETE'
+        })
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) {
+                    loadpeople();
+                } else {
+                    alert("Error al eliminar: " + data.error);
+                }
+            })
+            .catch(error => {
+                console.error("Error al eliminar usuario:", error);
+            });
+    }
 
     document.getElementById("post_form").addEventListener("submit", async function (event) {
         event.preventDefault();
@@ -226,7 +224,7 @@ function delete_people(email) {
         }
 
         const formData = new FormData();
-        formData.append("id_curso", id);
+        formData.append("codigo", codigo);
         formData.append("titulo", "");
         formData.append("contenido", contenido);
         formData.append("autor", email);
@@ -273,10 +271,10 @@ function delete_people(email) {
             });
     }
 
-    window.onload = function() {
-    loadposts();
-    loadpeople();
-    handle()
-};
+    window.onload = function () {
+        loadposts();
+        loadpeople();
+        handle()
+    };
 </script>
 {% endblock %}
