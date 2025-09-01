@@ -16,13 +16,13 @@ def signup_page():
 def login_page():
     return render_template('signup and login/login.html')
 
-@rutas.route("/curso/<int:id>")
-def curso(id):
-    conexiones = CursoUsuario.query.filter_by(id_curso=id,email=current_user.email).all()
+@rutas.route("/curso/<string:codigo>")
+def curso(codigo):
+    conexiones = CursoUsuario.query.filter_by(codigo=codigo,email=current_user.email).all()
     print(conexiones)
     if not conexiones:
         return render_template('error.html')
-    return render_template('curso.html', id=id)
+    return render_template('curso.html', codigo=codigo)
 
 
 
