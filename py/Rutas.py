@@ -19,7 +19,6 @@ def login_page():
 @rutas.route("/curso/<string:codigo>")
 def curso(codigo):
     conexiones = CursoUsuario.query.filter_by(codigo=codigo,email=current_user.email).all()
-    print(conexiones)
     if not conexiones:
         return render_template('error.html')
     return render_template('curso.html', codigo=codigo)

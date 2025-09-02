@@ -10,7 +10,6 @@ body {
     color: #333;
 }
 
-/* Navbar */
 nav {
     display: flex;
     justify-content: space-between;
@@ -58,21 +57,24 @@ nav button:hover {
     background: #e3f2fd;
 }
 
-/* Contenedor general */
 .container {
     width: 90%;
     max-width: 1200px;
     margin: 20px auto;
 }
 
-/* Lista de cursos en tarjetas */
 #lista {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
     gap: 20px;
 }
 
-#lista div {
+#lista_posts {
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 20px;
+}
+
+#lista div , #lista_posts div{
     background-color: white;
     border-radius: 10px;
     padding: 15px;
@@ -81,12 +83,12 @@ nav button:hover {
     transition: transform 0.2s ease-in-out;
 }
 
-#lista div:hover {
+#lista div:hover, #lista_posts div:hover{
     transform: translateY(-5px);
     background: #f1faff;
 }
 
-#lista h1 {
+#lista h1, #lista_posts h1 {
     font-size: 1.2rem;
     margin-bottom: 8px;
     color: #1e88e5;

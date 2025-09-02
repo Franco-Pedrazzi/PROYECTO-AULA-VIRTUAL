@@ -3,7 +3,20 @@
 {% block body %}
 
 {% if current_user.rango == "Profe" %}
-    <h1>{{codigo}}</h1>
+<h1>{{codigo}}</h1>
+<button onclick="mostrarFormulario_Tarea()">Crear Tarea</button>
+<br>
+
+<div id="form-Tarea" style="display:none;">
+    <input type="text" id="titulo_Tarea" placeholder="Titulo de la Tarea" style="max-width: 200px;">
+    <form id="post_form_Tarea" style="text-align: center;" enctype="multipart/form-data">
+        <input type="text" id="contenido_Tarea"><br>
+        <input type="file" id="archivo_Tarea" name="archivo"><br>
+    </form>
+    <button onclick="crearTarea()">Crear</button>
+    <br>
+    <br>
+</div>
 {% endif %}
 </div>
 
@@ -20,7 +33,7 @@
         <input type="submit" value="mandar">
     </form>
 
-    <ul id="lista">
+    <ul id="lista_posts">
 
     </ul>
 </div>
@@ -29,6 +42,10 @@
 <script>
     const usuarioRango = "{{ current_user.rango }}";
     const codigo = {{ codigo| tojson }};
+
+    function mostrarFormulario_Tarea() {
+        document.getElementById("form-Tarea").style.display = "inline";
+    }
 
     function handle() {
         var button = document.getElementById("handleButton");
@@ -62,7 +79,7 @@
             }
 
             data.reverse();
-            const container = document.getElementById("lista");
+            const container = document.getElementById("lista_posts");
             container.innerHTML = "";
 
             for (const post of data) {
@@ -137,7 +154,7 @@
                     element.style.margin = "5px";
 
                 } else {
-                    element = document.createElement("Alumno");
+                    element = document.createElement("a");
                     element.href = `data:${archivo.tipo};base64,${archivo.pixel}`;
                     element.download = archivo.nombre || "archivo";
                     element.textContent = `⬇ Descargar ${archivo.tipo}`;
@@ -212,7 +229,7 @@
             });
     }
 
-    document.getElementById("post_form").addEventListener("submit", async function (event) {
+    document.getElementById("post_form").addEventListener("submit", async function create_post(event) {
         event.preventDefault();
 
         const contenido = document.getElementById("contenido").value;
@@ -271,10 +288,53 @@
             });
     }
 
+    async function crearTarea() {
+        const Titulo = document.getElementById("titulo_Tarea").value;
+        const contenido= document.getElementById("contenido_Tarea").value;
+        const archivo= document.getElementById("archivo_Tarea").value;
+        const email = "{{ current_user.email }}";
+        
+        if (!Titulo) {
+            alert("Falta el Titulo de la tarea");
+            return;
+        }
+
+        try {
+            const res = await fetch("/api/Tareas", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({ 
+                    Titulo,
+                    contenido,
+                    archivo,
+                    email,
+                    codigo
+                 })
+            });
+
+            const data = await res.json();
+            if (data.success) {
+                alert("Curso creado correctamente");
+                loadcursos();
+                document.getElementById("form-curso").style.display = "none";
+                document.getElementById("nombre_curso").value = "";
+            } else {
+                alert("Error: " + data.error);
+            }
+        } catch (err) {
+            console.error("Error creando curso:", err);
+            alert("Error al crear el curso");
+        }
+    }
+
     window.onload = function () {
         loadposts();
         loadpeople();
         handle()
     };
+
+
 </script>
 {% endblock %}

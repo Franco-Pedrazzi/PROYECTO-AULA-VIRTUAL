@@ -25,11 +25,16 @@ class Post(db.Model):
     __tablename__ = "posts"
     id_post = db.Column(db.Integer, primary_key=True, autoincrement=True)
     codigo = db.Column(db.String(20), db.ForeignKey("cursos.codigo"))
-    titulo = db.Column(db.String(100), default="-")
     contenido = db.Column(db.Text)
     autor = db.Column(db.String(40))  
     fecha_publicacion = db.Column(db.DateTime, server_default=db.func.now())
 
+class Tarea(db.Model):
+    __tablename__ = "`id_tarea` INT AUTO_INCREMENT"
+    id_tarea = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    codigo = db.Column(db.String(20), db.ForeignKey("cursos.codigo"))
+    id_post = db.Column(db.Integer, db.ForeignKey("posts.id_post"))
+    titulo = db.Column(db.String(100), default="-")
 
 class Entrega(db.Model):
     __tablename__ = "entrega"
@@ -56,36 +61,6 @@ class Comentario(db.Model):
     fecha_comentario = db.Column(db.DateTime, server_default=db.func.now())
 
 
-@apis.route("/api/posts", methods=["POST"])
-def add_post():
-    codigo = request.form.get("codigo")
-    titulo = request.form.get("titulo", "")
-    contenido = request.form.get("contenido")
-    autor = request.form.get("autor")
-    archivo = request.files.get("archivo")
-
-    nuevo_post = Post(
-        codigo=codigo,
-        titulo=titulo,
-        contenido=contenido,
-        autor=autor
-    )
-    db.session.add(nuevo_post)
-    db.session.commit()
-
-    if archivo:
-        data = archivo.read() 
-        nuevo = Archivo(
-            id_post=nuevo_post.id_post,  
-            id_entrega=request.form.get("id_entrega"),
-            tipo=archivo.content_type,
-            tamano=len(data),
-            pixel=data
-        )
-        db.session.add(nuevo)
-        db.session.commit()
-
-    return jsonify(success=True, post={"id_post": nuevo_post.id_post})
 
 @apis.route("/api/cursos", methods=["GET"])
 def get_cursos():
@@ -157,7 +132,6 @@ def unirse_curso():
 
     return jsonify(success=True, mensaje="Te uniste al curso", curso={"codigo": curso.codigo, "nombre": curso.nombre})
 
-
 @apis.route("/api/cursos/<int:id>", methods=["PUT"])
 def update_curso(id):
 
@@ -168,7 +142,6 @@ def update_curso(id):
     curso.nombre = data.get("nombre", curso.nombre)
     db.session.commit()
     return jsonify(success=True)
-
 
 @apis.route("/api/cursos/<int:id>", methods=["DELETE"])
 def delete_curso(id):
@@ -181,7 +154,104 @@ def delete_curso(id):
 
 
 
+
+@apis.route("/api/posts", methods=["POST"])
+def add_post():
+    codigo = request.form.get("codigo")
+    contenido = request.form.get("contenido")
+    autor = request.form.get("autor")
+    archivo = request.files.get("archivo")
+
+    nuevo_post = Post(
+        codigo=codigo,
+        contenido=contenido,
+        autor=autor
+    )
+    db.session.add(nuevo_post)
+    db.session.commit()
+
+    if archivo:
+        data = archivo.read() 
+        nuevo = Archivo(
+            id_post=nuevo_post.id_post,  
+            id_entrega=request.form.get("id_entrega"),
+            tipo=archivo.content_type,
+            tamano=len(data),
+            pixel=data
+        )
+        db.session.add(nuevo)
+        db.session.commit()
+
+    return jsonify(success=True, post={"id_post": nuevo_post.id_post})
+
 @apis.route("/api/posts", methods=["GET"])
+def get_posts():
+    posts = Post.query.all()
+    result = []
+    for p in posts:
+        result.append({
+            "id_post": p.id_post,
+            "codigo": p.codigo,
+            "contenido": p.contenido,
+            "autor": p.autor,
+            "fecha_publicacion": p.fecha_publicacion
+        })
+    return jsonify(result)
+
+@apis.route("/api/posts/<string:codigo>", methods=["PUT"])
+def update_post(codigo):
+    post = Post.query.get(codigo)
+    if not post:
+        return jsonify(success=False, error="Post no encontrado"), 404
+    data = request.get_json()
+    post.contenido = data.get("contenido", post.contenido)
+    post.codigo = data.get("codigo", post.codigo)
+    db.session.commit()
+    return jsonify(success=True)
+
+@apis.route("/api/posts/<int:id>", methods=["DELETE"])
+def delete_post(id):
+    post = Post.query.get(id)
+    if not post:
+        return jsonify(success=False, error="Post no encontrado"), 404
+    db.session.delete(post)
+    db.session.commit()
+    return jsonify(success=True)
+
+
+
+@apis.route("/api/Tarea", methods=["POST"])
+def add_Tarea():
+    codigo = request.form.get("codigo")
+    titulo = request.form.get("titulo", "")
+    contenido = request.form.get("contenido")
+    autor = request.form.get("autor")
+    archivo = request.files.get("archivo")
+
+    nuevo_post = Tarea(
+        codigo=codigo,
+        titulo=titulo,
+        contenido=contenido,
+        autor=autor
+    )
+    db.session.add(nuevo_post)
+    db.session.commit()
+
+    if archivo:
+        data = archivo.read() 
+        nuevo = Archivo(
+            id_post=nuevo_post.id_post,  
+            id_entrega=request.form.get("id_entrega"),
+            tipo=archivo.content_type,
+            tamano=len(data),
+            pixel=data
+        )
+        db.session.add(nuevo)
+        db.session.commit()
+
+    return jsonify(success=True, post={"id_post": nuevo_post.id_post})
+
+@apis.route("/api/Tarea", methods=["GET"])
 def get_posts():
     posts = Post.query.all()
     result = []
@@ -196,7 +266,7 @@ def get_posts():
         })
     return jsonify(result)
 
-@apis.route("/api/posts/<string:codigo>", methods=["PUT"])
+@apis.route("/api/Tarea/<string:codigo>", methods=["PUT"])
 def update_post(codigo):
     post = Post.query.get(codigo)
     if not post:
@@ -208,8 +278,7 @@ def update_post(codigo):
     db.session.commit()
     return jsonify(success=True)
 
-
-@apis.route("/api/posts/<int:id>", methods=["DELETE"])
+@apis.route("/api/Tarea/<int:id>", methods=["DELETE"])
 def delete_post(id):
     post = Post.query.get(id)
     if not post:
@@ -217,6 +286,9 @@ def delete_post(id):
     db.session.delete(post)
     db.session.commit()
     return jsonify(success=True)
+
+
+
 
 @apis.route("/api/entregas", methods=["POST"])
 def add_entrega():
@@ -229,7 +301,6 @@ def add_entrega():
     db.session.commit()
     return jsonify(success=True, entrega={"id_entrega": nueva.id_entrega})
 
-
 @apis.route("/api/entregas", methods=["GET"])
 def get_entregas():
     entregas = Entrega.query.all()
@@ -237,6 +308,7 @@ def get_entregas():
         {"id_entrega": e.id_entrega, "id_post": e.id_post, "autor": e.autor, "fecha_entrega": e.fecha_entrega}
         for e in entregas
     ])
+
 
 
 
@@ -255,6 +327,7 @@ def get_archivos(id):
 
 
 
+
 @apis.route("/api/comentarios", methods=["POST"])
 def add_comentario():
     data = request.get_json()
@@ -266,7 +339,6 @@ def add_comentario():
     db.session.add(nuevo)
     db.session.commit()
     return jsonify(success=True, comentario={"id_comentario": nuevo.id_comentario})
-
 
 @apis.route("/api/comentarios", methods=["GET"])
 def get_comentarios():
@@ -281,6 +353,8 @@ def get_comentarios():
         }
         for c in comentarios
     ])
+
+
 
 
 @apis.route("/api/cursos_usuarios", methods=["POST"])
@@ -307,7 +381,6 @@ def get_cursos_usuarios(codigo):
 
     cursos = [cu.email for cu in conexiones]
     return jsonify(cursos)
-
 
 @apis.route("/api/cursos_usuarios/<string:codigo>/<string:email>", methods=["DELETE"])
 def delete_cursos_usuarios(codigo,email):

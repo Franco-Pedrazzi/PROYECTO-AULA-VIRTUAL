@@ -2,14 +2,12 @@
 
 {% block body %}
 
-<ul id="lista">
-
     {% if current_user.is_authenticated == false %}
         <p>Inicia sesión para ver tus cursos</p>
     
     {% else %}
 
-        {% if current_user.rango == "Profe" %}
+    {% if current_user.rango == "Profe" %}
             <button onclick="mostrarFormulario()">Crear Curso</button>
             <br>
 
@@ -17,20 +15,19 @@
                 <input type="text" id="nombre_curso" placeholder="Nombre del curso" style="max-width: 200px;">
                 <button onclick="crearCurso()">Crear</button>
             </div>
-        {% endif %}
-
-<ul id="lista">
-
-
-
-    </ul>
-        <div style="margin-top:20px; padding:10px;">
+    {%else%}
+            <div style="margin-top:20px; padding:10px;">
             <button onclick="mostrarUnirse()">Unirse a curso</button>
 
         
             <input id="form-unirse" style="display:none;" type="text" placeholder="Código del curso">
             <button id="boton-unirse" style="display:none;" onclick="unirseCurso()">Unirse</button>
         </div>
+    {% endif %}
+
+    <ul id="lista">
+
+</ul>
 
     {% endif %}
 

@@ -36,6 +36,18 @@ CREATE TABLE `posts` (
   FOREIGN KEY (`autor`) REFERENCES `usuario`(`email`) ON DELETE SET NULL ON UPDATE CASCADE
 );
 
+CREATE TABLE `Tarea` (
+  `id_tarea` INT AUTO_INCREMENT,
+  `codigo` VARCHAR(20) NULL,
+  `id_post` INT NULL,
+  `titulo` VARCHAR(100) NULL DEFAULT '-',
+  PRIMARY KEY (`id_tarea`),
+  FOREIGN KEY (`id_post`) REFERENCES `posts`(`id_post`) ON DELETE CASCADE,
+  FOREIGN KEY (`codigo`) REFERENCES `cursos`(`codigo`) ON DELETE CASCADE ON UPDATE CASCADE,
+  FOREIGN KEY (`autor`) REFERENCES `usuario`(`email`) ON DELETE SET NULL ON UPDATE CASCADE
+);
+
+
 CREATE TABLE `entrega` (
   `id_entrega` INT AUTO_INCREMENT,
   `id_post` INT NULL,
