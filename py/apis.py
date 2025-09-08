@@ -30,10 +30,12 @@ class Post(db.Model):
     fecha_publicacion = db.Column(db.DateTime, server_default=db.func.now())
 
 class Tarea(db.Model):
-    __tablename__ = "`id_tarea` INT AUTO_INCREMENT"
+    __tablename__ = "Tarea"
     id_tarea = db.Column(db.Integer, primary_key=True, autoincrement=True)
     codigo = db.Column(db.String(20), db.ForeignKey("cursos.codigo"))
-    id_post = db.Column(db.Integer, db.ForeignKey("posts.id_post"))
+    contenido = db.Column(db.Text)
+    autor = db.Column(db.String(40))  
+    fecha_publicacion = db.Column(db.DateTime, server_default=db.func.now())
     titulo = db.Column(db.String(100), default="-")
 
 class Entrega(db.Model):
@@ -80,11 +82,6 @@ def get_cursos():
 
 @apis.route("/api/cursos", methods=["POST"])
 def add_curso():
-    if not current_user.is_authenticated:
-        return jsonify(success=False, error="Debes iniciar sesión"), 401
-    if current_user.rango != "Profe":
-        return jsonify(success=False, error="No autorizado"), 403
-
     data = request.get_json()
     nombre = data.get("nombre")
     if not nombre:
@@ -222,11 +219,12 @@ def delete_post(id):
 
 @apis.route("/api/Tarea", methods=["POST"])
 def add_Tarea():
-    codigo = request.form.get("codigo")
-    titulo = request.form.get("titulo", "")
-    contenido = request.form.get("contenido")
-    autor = request.form.get("autor")
-    archivo = request.files.get("archivo")
+    data = request.get_json()
+    codigo = data.get("codigo")
+    titulo = data.get("Titulo")
+    contenido = data.get("contenido")
+    autor = data.get("email")
+    archivo = data.get("archivo")
 
     nuevo_post = Tarea(
         codigo=codigo,
