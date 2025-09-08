@@ -252,7 +252,7 @@ def add_Tarea():
     return jsonify(success=True, post={"id_post": nuevo_post.id_post})
 
 @apis.route("/api/Tarea", methods=["GET"])
-def get_posts():
+def get_Tarea():
     posts = Post.query.all()
     result = []
     for p in posts:
@@ -267,7 +267,7 @@ def get_posts():
     return jsonify(result)
 
 @apis.route("/api/Tarea/<string:codigo>", methods=["PUT"])
-def update_post(codigo):
+def update_Tarea(codigo):
     post = Post.query.get(codigo)
     if not post:
         return jsonify(success=False, error="Post no encontrado"), 404
@@ -279,7 +279,7 @@ def update_post(codigo):
     return jsonify(success=True)
 
 @apis.route("/api/Tarea/<int:id>", methods=["DELETE"])
-def delete_post(id):
+def delete_Tarea(id):
     post = Post.query.get(id)
     if not post:
         return jsonify(success=False, error="Post no encontrado"), 404
