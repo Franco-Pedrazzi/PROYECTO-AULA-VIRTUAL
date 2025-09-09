@@ -218,73 +218,69 @@ def delete_post(id):
 
 
 @apis.route("/api/Tarea", methods=["POST"])
+@login_required
 def add_Tarea():
+    if current_user.rango != "Profe":
+        return jsonify(success=False, error="Solo los profesores pueden crear tareas"), 403
+
     data = request.get_json()
     codigo = data.get("codigo")
     titulo = data.get("Titulo")
     contenido = data.get("contenido")
-    autor = data.get("email")
-    archivo = data.get("archivo")
+    autor = current_user.email
 
-    nuevo_post = Tarea(
+    if not (codigo and titulo):
+        return jsonify(success=False, error="Faltan datos"), 400
+
+    nueva_tarea = Tarea(
         codigo=codigo,
         titulo=titulo,
         contenido=contenido,
         autor=autor
     )
-    db.session.add(nuevo_post)
+    db.session.add(nueva_tarea)
     db.session.commit()
 
-    if archivo:
-        data = archivo.read() 
-        nuevo = Archivo(
-            id_post=nuevo_post.id_post,  
-            id_entrega=request.form.get("id_entrega"),
-            tipo=archivo.content_type,
-            tamano=len(data),
-            pixel=data
-        )
-        db.session.add(nuevo)
-        db.session.commit()
+    return jsonify(success=True, tarea={
+        "id_tarea": nueva_tarea.id_tarea,
+        "codigo": nueva_tarea.codigo,
+        "titulo": nueva_tarea.titulo,
+        "contenido": nueva_tarea.contenido,
+        "autor": nueva_tarea.autor,
+        "fecha_publicacion": nueva_tarea.fecha_publicacion
+    })
 
-    return jsonify(success=True, post={"id_post": nuevo_post.id_post})
 
 @apis.route("/api/Tarea", methods=["GET"])
-def get_Tarea():
-    posts = Post.query.all()
+@login_required
+def get_Tareas():
+    tareas = Tarea.query.all()
     result = []
-    for p in posts:
+    for t in tareas:
         result.append({
-            "id_post": p.id_post,
-            "codigo": p.codigo,
-            "titulo": p.titulo,
-            "contenido": p.contenido,
-            "autor": p.autor,
-            "fecha_publicacion": p.fecha_publicacion
+            "id_tarea": t.id_tarea,
+            "codigo": t.codigo,
+            "titulo": t.titulo,
+            "contenido": t.contenido,
+            "autor": t.autor,
+            "fecha_publicacion": t.fecha_publicacion
         })
     return jsonify(result)
 
-@apis.route("/api/Tarea/<string:codigo>", methods=["PUT"])
-def update_Tarea(codigo):
-    post = Post.query.get(codigo)
-    if not post:
-        return jsonify(success=False, error="Post no encontrado"), 404
-    data = request.get_json()
-    post.titulo = data.get("titulo", post.titulo)
-    post.contenido = data.get("contenido", post.contenido)
-    post.codigo = data.get("codigo", post.codigo)
-    db.session.commit()
-    return jsonify(success=True)
 
 @apis.route("/api/Tarea/<int:id>", methods=["DELETE"])
+@login_required
 def delete_Tarea(id):
-    post = Post.query.get(id)
-    if not post:
-        return jsonify(success=False, error="Post no encontrado"), 404
-    db.session.delete(post)
+    tarea = Tarea.query.get(id)
+    if not tarea:
+        return jsonify(success=False, error="Tarea no encontrada"), 404
+
+    if current_user.rango != "Profe":
+        return jsonify(success=False, error="No tienes permiso para eliminar tareas"), 403
+
+    db.session.delete(tarea)
     db.session.commit()
     return jsonify(success=True)
-
 
 
 

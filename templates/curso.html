@@ -34,8 +34,14 @@
     </form>
 
     <ul id="lista_posts">
-
+        <!-- Aqui se almacenan los posts -->
     </ul>
+
+    <h2>Tareas</h2>
+    <div id="tareas-container">
+        <!-- Aqui se almacenan los tareas -->
+    </div>
+
 </div>
 
 
@@ -290,10 +296,9 @@
 
     async function crearTarea() {
         const Titulo = document.getElementById("titulo_Tarea").value;
-        const contenido= document.getElementById("contenido_Tarea").value;
-        const archivo= document.getElementById("archivo_Tarea").value;
+        const contenido = document.getElementById("contenido_Tarea").value;
         const email = "{{ current_user.email }}";
-        
+
         if (!Titulo) {
             alert("Falta el Titulo de la tarea");
             return;
@@ -302,35 +307,98 @@
         try {
             const res = await fetch("/api/Tarea", {
                 method: "POST",
-                headers: {
-                    "Content-Type": "application/json"
-                },
+                headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ 
                     Titulo,
                     contenido,
-                    archivo,
                     email,
                     codigo
-                 })
+                })
             });
 
             const data = await res.json();
             if (data.success) {
-                alert("Curso creado correctamente");
-                loadcursos();
-                document.getElementById("form-curso").style.display = "none";
-                document.getElementById("nombre_curso").value = "";
+                alert("Tarea creada correctamente");
+                document.getElementById("form-Tarea").style.display = "none";
+                document.getElementById("titulo_Tarea").value = "";
+                document.getElementById("contenido_Tarea").value = "";
             } else {
                 alert("Error: " + data.error);
             }
         } catch (err) {
             console.error("Error creando tarea:", err);
-            alert("Error al crear el tarea");
+            alert("Error al crear la tarea");
         }
     }
 
+    async function loadTareas() {
+        try {
+            const res = await fetch('/api/Tarea');
+            if (!res.ok) {
+                throw new Error("Error HTTP: " + res.status);
+            }
+
+            const data = await res.json();
+            const container = document.getElementById("tareas-container");
+            container.innerHTML = "";
+
+            // Filtramos las tareas por el curso actual (codigo/id)
+            for (const tarea of data) {
+                if (tarea.codigo == codigo) {
+                    const div = document.createElement("div");
+                    div.style.marginBottom = "15px";
+                    div.style.border = "1px solid black";
+                    div.style.padding = "10px";
+                    div.style.borderRadius = "8px";
+                    div.style.backgroundColor = "#f9f9f9";
+
+                    div.innerHTML = `
+                        <h4>${tarea.titulo}</h4>
+                        <p>${tarea.contenido || ""}</p>
+                        <small>Autor: ${tarea.autor} | Fecha: ${tarea.fecha_publicacion}</small>
+                    `;
+
+                    // Solo los profes pueden borrar
+                    if ("{{ current_user.rango }}" === "Profe") {
+                        const deleteBtn = document.createElement("button");
+                        deleteBtn.innerText = "Eliminar Tarea";
+                        deleteBtn.style.marginTop = "8px";
+                        deleteBtn.onclick = async () => {
+                            if (!confirm("¿Seguro que quieres eliminar esta tarea?")) return;
+
+                            try {
+                                const resDel = await fetch(`/api/Tarea/${tarea.id_tarea}`, {
+                                    method: "DELETE"
+                                });
+                                const result = await resDel.json();
+                                if (result.success) {
+                                    alert("Tarea eliminada");
+                                    loadTareas();
+                                } else {
+                                    alert("Error: " + result.error);
+                                }
+                            } catch (err) {
+                                console.error("Error al eliminar tarea:", err);
+                                alert("Error en el servidor");
+                            }
+                        };
+                        div.appendChild(deleteBtn);
+                    }
+
+                    container.appendChild(div);
+                }
+            }
+        } catch (err) {
+            console.error("Error al cargar tareas:", err);
+            alert("Error al cargar tareas.");
+        }
+    }
+
+
+
     window.onload = function () {
         loadposts();
+        loadTareas();
         loadpeople();
         handle()
     };

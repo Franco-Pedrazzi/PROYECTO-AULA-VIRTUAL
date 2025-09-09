@@ -18,7 +18,7 @@ from py.db import db
 app = Flask(__name__)
 CORS(app)
 
-app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+pymysql://root:123456@localhost/aula'
+app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+pymysql://root:461315@localhost/aula'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.secret_key = 'secret'
 
