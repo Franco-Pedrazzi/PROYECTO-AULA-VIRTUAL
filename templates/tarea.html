@@ -1,0 +1,203 @@
+{% extends "./base.html" %}
+
+{% block body %}
+
+<h1 id="tarea-titulo"></h1>
+<p id="tarea-contenido"></p>
+
+{% if current_user.rango == "Profe" %}
+
+{% else %}
+
+<div id="form-entrega" style="margin-top:20px;">
+    <h3>Tu entrega</h3>
+    <input type="file" id="archivo">
+    <button onclick="entregar()">Entregar</button>
+</div>
+
+<div id="mi-entrega" style="margin-top:20px; border:1px solid gray; padding:10px;">
+    <p>No has entregado nada aún.</p>
+</div>
+
+<div id="estado-entrega"></div>
+
+{% endif %}
+
+
+
+<script>
+    const usuarioRango = "{{ current_user.rango }}";
+    const codigo = "{{ codigo }}";
+    const id = "{{ id }}";
+
+
+    // Cargar la tarea (titulo y contenido)
+    async function loadTarea() {
+        try {
+            const res = await fetch('/api/Tarea');
+            if (!res.ok) {
+                throw new Error("Error HTTP: " + res.status);
+            }
+            const data = await res.json();
+
+            for (const tarea of data) {
+                if (tarea.id_tarea == id) {
+                    document.getElementById("tarea-titulo").innerText = tarea.titulo;
+                    document.getElementById("tarea-contenido").innerText = tarea.contenido || "";
+                }
+            }
+        } catch (err) {
+            console.error("Error al cargar tarea:", err);
+            alert("Error al cargar tarea.");
+        }
+    }
+
+    async function loadFilesEntrega(id_entrega) {
+        try {
+            const res = await fetch(`/api/archivos_entrega/${id_entrega}`);
+            const data = await res.json();
+
+            if (!Array.isArray(data)) {
+                console.error("Respuesta inesperada:", data);
+                alert("Error al obtener los archivos de la entrega");
+                return [];
+            }
+
+            const files = [];
+            for (const archivo of data) {
+                let element;
+
+                if (archivo.tipo.startsWith("image/")) {
+                    element = document.createElement("img");
+                    element.src = `data:${archivo.tipo};base64,${archivo.pixel}`;
+                    element.style.width = "150px";
+                    element.style.height = "150px";
+                    element.style.objectFit = "cover";
+                    element.style.cursor = "pointer";
+                    element.style.margin = "5px";
+
+                } else if (archivo.tipo.startsWith("video/")) {
+                    element = document.createElement("video");
+                    element.src = `data:${archivo.tipo};base64,${archivo.pixel}`;
+                    element.controls = true;
+                    element.style.width = "300px";
+                    element.style.margin = "5px";
+
+                } else {
+                    element = document.createElement("a");
+                    element.href = `data:${archivo.tipo};base64,${archivo.pixel}`;
+                    element.download = archivo.nombre || "archivo";
+                    element.textContent = `⬇ Descargar ${archivo.nombre || archivo.tipo}`;
+                    element.style.display = "block";
+                    element.style.margin = "5px";
+                }
+
+                files.push(element);
+            }
+
+            return files;
+        } catch (err) {
+            console.error("Error al cargar archivos de entrega:", err);
+            alert("Error al cargar archivos.");
+            return [];
+        }
+    }
+
+
+    // Mostrar entrega del alumno
+    async function checkEntrega(id_tarea) {
+        try {
+            const res = await fetch(`/api/entregas/${id_tarea}`);
+            const data = await res.json();
+
+            const container = document.getElementById("mi-entrega");
+            container.innerHTML = "";
+
+            if (!data.success) {
+                container.innerHTML = `<p>No has entregado nada aún.</p>`;
+                return;
+            }
+
+            // Crear bloque base
+            const entregaDiv = document.createElement("div");
+            entregaDiv.innerHTML = `
+                <p><strong>Entregado el:</strong> ${data.entrega.fecha_entrega}</p>
+            `;
+
+            // Cargar archivos con la función reutilizada
+            const files = await loadFilesEntrega(data.entrega.id_entrega);
+            for (const f of files) {
+                entregaDiv.appendChild(f);
+            }
+
+            // Botón para cancelar
+            const cancelBtn = document.createElement("button");
+            cancelBtn.textContent = "Cancelar entrega";
+            cancelBtn.onclick = () => cancelarEntrega(data.entrega.id_entrega);
+            entregaDiv.appendChild(cancelBtn);
+
+            container.appendChild(entregaDiv);
+
+        } catch (err) {
+            console.error("Error cargando entrega:", err);
+        }
+    }
+
+
+
+    // Enviar una entrega
+    async function entregar() {
+        const archivoInput = document.getElementById("archivo");
+        const formData = new FormData();
+        formData.append("id_tarea", id);
+
+        if (archivoInput.files.length > 0) {
+            formData.append("archivo", archivoInput.files[0]);
+        }
+
+        try {
+            const res = await fetch("/api/entregas", {
+                method: "POST",
+                body: formData
+            });
+
+            const data = await res.json();
+            if (data.success) {
+                alert("Entrega enviada");
+                checkEntrega(id);
+            } else {
+                alert("Error: " + data.error);
+            }
+        } catch (err) {
+            console.error("Error en la entrega:", err);
+            alert("No se pudo enviar la entrega");
+        }
+    }
+
+    // Cancelar entrega
+    async function cancelarEntrega(id_entrega) {
+        if (!confirm("¿Seguro que quieres cancelar tu entrega?")) return;
+
+        try {
+            const res = await fetch(`/api/entregas/${id_entrega}`, {
+                method: "DELETE"
+            });
+            const data = await res.json();
+            if (data.success) {
+                alert("Entrega cancelada");
+                checkEntrega(id);
+            } else {
+                alert("Error: " + data.error);
+            }
+        } catch (err) {
+            console.error("Error cancelando entrega:", err);
+        }
+    }
+
+    // Cuando carga la página
+    window.onload = function () {
+        loadTarea();
+        checkEntrega(id);
+    };
+</script>
+{% endblock %}

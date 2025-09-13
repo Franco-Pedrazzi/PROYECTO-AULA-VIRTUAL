@@ -293,43 +293,6 @@
             });
     }
 
-    async function crearTarea() {
-        const Titulo = document.getElementById("titulo_Tarea").value;
-        const contenido = document.getElementById("contenido_Tarea").value;
-        const email = "{{ current_user.email }}";
-
-        if (!Titulo) {
-            alert("Falta el Titulo de la tarea");
-            return;
-        }
-
-        try {
-            const res = await fetch("/api/Tarea", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ 
-                    Titulo,
-                    contenido,
-                    email,
-                    codigo
-                })
-            });
-
-            const data = await res.json();
-            if (data.success) {
-                alert("Tarea creada correctamente");
-                document.getElementById("form-Tarea").style.display = "none";
-                document.getElementById("titulo_Tarea").value = "";
-                document.getElementById("contenido_Tarea").value = "";
-            } else {
-                alert("Error: " + data.error);
-            }
-        } catch (err) {
-            console.error("Error creando tarea:", err);
-            alert("Error al crear la tarea");
-        }
-    }
-
     async function loadTareas() {
         try {
             const res = await fetch('/api/Tarea');
@@ -350,6 +313,10 @@
                     div.style.padding = "10px";
                     div.style.borderRadius = "8px";
                     div.style.backgroundColor = "#f9f9f9";
+                    div.onclick = () => {
+                        //Añadi el window.location.host para que funcione si cambiamos el puerto del dominio, por las dudengues
+                        location.href = `http://` + window.location.host + `/curso/${codigo}/tarea/${tarea.id_tarea}`;
+                    };
 
                     div.innerHTML = `
                         <h4>${tarea.titulo}</h4>
@@ -393,7 +360,43 @@
         }
     }
 
+    async function crearTarea() {
+        const Titulo = document.getElementById("titulo_Tarea").value;
+        const contenido = document.getElementById("contenido_Tarea").value;
+        const email = "{{ current_user.email }}";
 
+        if (!Titulo) {
+            alert("Falta el Titulo de la tarea");
+            return;
+        }
+
+        try {
+            const res = await fetch("/api/Tarea", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ 
+                    Titulo,
+                    contenido,
+                    email,
+                    codigo
+                })
+            });
+
+            const data = await res.json();
+            if (data.success) {
+                alert("Tarea creada correctamente");
+                loadTareas();
+                document.getElementById("form-Tarea").style.display = "none";
+                document.getElementById("titulo_Tarea").value = "";
+                document.getElementById("contenido_Tarea").value = "";
+            } else {
+                alert("Error: " + data.error);
+            }
+        } catch (err) {
+            console.error("Error creando tarea:", err);
+            alert("Error al crear la tarea");
+        }
+    }
 
     window.onload = function () {
         loadposts();

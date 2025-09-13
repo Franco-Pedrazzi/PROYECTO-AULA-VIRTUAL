@@ -44,7 +44,6 @@ CREATE TABLE `Tarea` (
   `autor` VARCHAR(40) NULL,
   `fecha_publicacion` DATETIME NULL DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (`id_tarea`),
-  FOREIGN KEY (`id_post`) REFERENCES `posts`(`id_post`) ON DELETE CASCADE,
   FOREIGN KEY (`codigo`) REFERENCES `cursos`(`codigo`) ON DELETE CASCADE ON UPDATE CASCADE,
   FOREIGN KEY (`autor`) REFERENCES `usuario`(`email`) ON DELETE SET NULL ON UPDATE CASCADE
 );
@@ -64,6 +63,7 @@ CREATE TABLE `archivos` (
   `id_archivo` INT AUTO_INCREMENT PRIMARY KEY,
   `id_post` INT NULL,
   `id_entrega` INT NULL,
+  `nombre` VARCHAR(255),              -- nuevo
   `tipo` VARCHAR(50),
   `tamano` BIGINT,
   `pixel` LONGBLOB,
@@ -91,5 +91,3 @@ CREATE TABLE `verificacion` (
   `rango` VARCHAR(20) NOT NULL,
   PRIMARY KEY (`id`)
 );
-
-

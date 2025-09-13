@@ -23,6 +23,10 @@ def curso(codigo):
         return render_template('error.html')
     return render_template('curso.html', codigo=codigo)
 
-
-
-
+@rutas.route("/curso/<string:codigo>/tarea/<int:id>")
+def tarea(codigo, id):
+    conexiones = CursoUsuario.query.filter_by(codigo=codigo,email=current_user.email).all()
+    
+    if not conexiones:
+        return render_template('error.html')
+    return render_template('tarea.html', id=id)

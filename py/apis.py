@@ -41,8 +41,8 @@ class Tarea(db.Model):
 class Entrega(db.Model):
     __tablename__ = "entrega"
     id_entrega = db.Column(db.Integer, primary_key=True, autoincrement=True)
-    id_post = db.Column(db.Integer, db.ForeignKey("posts.id_post"))
-    autor = db.Column(db.String(40))  
+    id_tarea = db.Column(db.Integer, db.ForeignKey("Tarea.id_tarea"))
+    autor = db.Column(db.String(40), db.ForeignKey("usuario.email"))  
     fecha_entrega = db.Column(db.DateTime, server_default=db.func.now())
 
 class Archivo(db.Model):
@@ -53,6 +53,7 @@ class Archivo(db.Model):
     tipo = db.Column(db.String(50))
     tamano = db.Column(db.BigInteger)
     pixel = db.Column(db.LargeBinary) 
+    nombre = db.Column(db.String(255))
 
 class Comentario(db.Model):
     __tablename__ = "comentario"
@@ -285,25 +286,82 @@ def delete_Tarea(id):
 
 
 @apis.route("/api/entregas", methods=["POST"])
+@login_required
 def add_entrega():
-    data = request.get_json()
+    id_tarea = request.form.get("id_tarea")
+    archivo = request.files.get("archivo")
+
+    if not id_tarea:
+        return jsonify(success=False, error="Falta id_tarea"), 400
+
+    # validar que no entregue dos veces
+    existente = Entrega.query.filter_by(id_tarea=id_tarea, autor=current_user.email).first()
+    if existente:
+        return jsonify(success=False, error="Ya has entregado esta tarea"), 400
+
     nueva = Entrega(
-        id_post=data.get("id_post"),
-        autor=data.get("autor")
+        id_tarea=id_tarea,
+        autor=current_user.email
     )
     db.session.add(nueva)
     db.session.commit()
+
+    # guardar archivo si existe
+    if archivo:
+        data = archivo.read()
+        nuevo_archivo = Archivo(
+            id_entrega=nueva.id_entrega,
+            tipo=archivo.content_type,
+            tamano=len(data),
+            pixel=data,
+            nombre=archivo.filename   # guardar nombre original
+        )
+        db.session.add(nuevo_archivo)
+        db.session.commit()
+
     return jsonify(success=True, entrega={"id_entrega": nueva.id_entrega})
 
-@apis.route("/api/entregas", methods=["GET"])
-def get_entregas():
-    entregas = Entrega.query.all()
-    return jsonify([
-        {"id_entrega": e.id_entrega, "id_post": e.id_post, "autor": e.autor, "fecha_entrega": e.fecha_entrega}
-        for e in entregas
-    ])
+@apis.route("/api/entregas/<int:id_tarea>", methods=["GET"])
+@login_required
+def get_entrega_by_tarea(id_tarea):
+    entrega = Entrega.query.filter_by(id_tarea=id_tarea, autor=current_user.email).first()
+    if not entrega:
+        return jsonify(success=False, error="No has entregado nada aún"), 404
+
+    archivos = Archivo.query.filter_by(id_entrega=entrega.id_entrega).all()
+    archivos_data = [
+        {
+            "id_archivo": a.id_archivo,
+            "nombre": a.nombre,
+            "tipo": a.tipo,
+            "tamano": a.tamano,
+            "pixel": base64.b64encode(a.pixel).decode("utf-8") if a.pixel else None
+        }
+        for a in archivos
+    ]
+
+    return jsonify(success=True, entrega={
+        "id_entrega": entrega.id_entrega,
+        "autor": entrega.autor,
+        "fecha_entrega": entrega.fecha_entrega,
+        "archivos": archivos_data
+    })
+    
 
 
+@apis.route("/api/entregas/<int:id_entrega>", methods=["DELETE"])
+@login_required
+def delete_entrega(id_entrega):
+    entrega = Entrega.query.get(id_entrega)
+    if not entrega:
+        return jsonify(success=False, error="Entrega no encontrada"), 404
+
+    if entrega.autor != current_user.email:
+        return jsonify(success=False, error="No puedes borrar entregas de otros"), 403
+
+    db.session.delete(entrega)
+    db.session.commit()
+    return jsonify(success=True, mensaje="Entrega cancelada")
 
 
 @apis.route("/api/archivos/<int:id>", methods=["GET"])
@@ -319,8 +377,20 @@ def get_archivos(id):
         } for a in archivos
     ])
 
-
-
+@apis.route("/api/archivos_entrega/<int:id_entrega>", methods=["GET"])
+@login_required
+def get_archivos_entrega(id_entrega):
+    archivos = Archivo.query.filter_by(id_entrega=id_entrega).all()
+    return jsonify([
+        {
+            "id_archivo": a.id_archivo,
+            "nombre": a.nombre,
+            "tipo": a.tipo,
+            "tamano": a.tamano,
+            "pixel": base64.b64encode(a.pixel).decode("utf-8") if a.pixel else None
+        }
+        for a in archivos
+    ])
 
 @apis.route("/api/comentarios", methods=["POST"])
 def add_comentario():
