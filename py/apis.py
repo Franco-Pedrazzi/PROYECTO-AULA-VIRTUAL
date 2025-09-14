@@ -321,6 +321,7 @@ def add_entrega():
 
     return jsonify(success=True, entrega={"id_entrega": nueva.id_entrega})
 
+#Api para que el alumno vea su entrega de una tarea
 @apis.route("/api/entregas/<int:id_tarea>", methods=["GET"])
 @login_required
 def get_entrega_by_tarea(id_tarea):
@@ -346,7 +347,38 @@ def get_entrega_by_tarea(id_tarea):
         "fecha_entrega": entrega.fecha_entrega,
         "archivos": archivos_data
     })
-    
+
+#Api para que el profe vea todas las entregas de una tarea
+@apis.route("/api/entregas/tarea/<int:id_tarea>", methods=["GET"])
+@login_required
+def get_entregas_by_tarea(id_tarea):
+    if current_user.rango != "Profe":
+        return jsonify(success=False, error="No autorizado"), 403
+
+    entregas = Entrega.query.filter_by(id_tarea=id_tarea).all()
+    result = []
+    for e in entregas:
+        archivos = Archivo.query.filter_by(id_entrega=e.id_entrega).all()
+        archivos_data = [
+            {
+                "id_archivo": a.id_archivo,
+                "nombre": a.nombre,
+                "tipo": a.tipo,
+                "tamano": a.tamano,
+                "pixel": base64.b64encode(a.pixel).decode("utf-8") if a.pixel else None
+            }
+            for a in archivos
+        ]
+
+        result.append({
+            "id_entrega": e.id_entrega,
+            "autor": e.autor,
+            "fecha_entrega": e.fecha_entrega,
+            "archivos": archivos_data
+        })
+
+    return jsonify(success=True, entregas=result)
+
 
 
 @apis.route("/api/entregas/<int:id_entrega>", methods=["DELETE"])
