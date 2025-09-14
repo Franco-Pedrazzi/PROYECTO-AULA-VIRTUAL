@@ -7,13 +7,17 @@
     
     {% else %}
 
+    <ul id="lista"></ul>
+
     {% if current_user.rango == "Profe" %}
-            <button onclick="mostrarFormulario()">Crear Curso</button>
+            <button id="boton-formulario" type="button" class="btn btn-primary btn-lg" onclick="mostrarFormulario()">Crear Curso</button>
             <br>
 
             <div id="form-curso" style="display:none;">
-                <input type="text" id="nombre_curso" placeholder="Nombre del curso" style="max-width: 200px;">
-                <button onclick="crearCurso()">Crear</button>
+                <input type="text" id="nombre_curso" placeholder="Nombre del curso" style="max-width: 500px; margin-left: -10px;">
+                <br>
+                <button type="button" class="btn btn-primary btn-lg" onclick="crearCurso()">Crear</button>
+                <button type="button" class="btn btn-primary btn-lg" onclick="esconderFormulario()">Cancelar</button>
             </div>
     {%else%}
             <div style="margin-top:20px; padding:10px;">
@@ -24,8 +28,6 @@
             <button id="boton-unirse" style="display:none;" onclick="unirseCurso()">Unirse</button>
         </div>
     {% endif %}
-
-    <ul id="lista">
 
 </ul>
 
@@ -50,9 +52,12 @@
                 const div = document.createElement("div");
                 div.style.marginBottom = "15px";
                 div.style.border = "1px solid black";
+                div.onclick = () => {
+                    location.href = `http://` + window.location.host + `/curso/${curso.codigo}`;
+                };
 
                 div.innerHTML = `
-                <h1 onClick="location.href='http://127.0.0.1:5000/curso/${curso.codigo}'"><strong>Clase:</strong> ${curso.nombre}</h1>
+                <h1><strong>Clase:</strong> ${curso.nombre}</h1>
             `;
 
             container.appendChild(div);
@@ -70,6 +75,12 @@
 
 function mostrarFormulario() {
     document.getElementById("form-curso").style.display = "inline";
+    document.getElementById("boton-formulario").style.display = "none";
+}
+
+function esconderFormulario() {
+    document.getElementById("form-curso").style.display = "none";
+    document.getElementById("boton-formulario").style.display = "inline";
 }
 
 function mostrarUnirse() {

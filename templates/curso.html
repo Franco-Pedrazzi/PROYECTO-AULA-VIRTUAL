@@ -2,8 +2,10 @@
 
 {% block body %}
 
+<h1 class="text-center my-4">{{ nombre_curso }}</h1>
+
 {% if current_user.rango == "Profe" %}
-<h1>{{codigo}}</h1>
+<h1>Codigo: {{codigo}}</h1>
 <button onclick="mostrarFormulario_Tarea()">Crear Tarea</button>
 <br>
 

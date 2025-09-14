@@ -2,7 +2,7 @@ from flask import Flask, render_template,Blueprint, request, jsonify, redirect, 
 from flask_cors import CORS
 from jinja2 import TemplateNotFound
 from flask_login import LoginManager, UserMixin, login_user, login_required, logout_user, current_user 
-from py.apis import CursoUsuario  
+from py.apis import Curso, CursoUsuario
 
 rutas = Blueprint('rutas', __name__,template_folder='templates')
 
@@ -21,7 +21,11 @@ def curso(codigo):
     conexiones = CursoUsuario.query.filter_by(codigo=codigo,email=current_user.email).all()
     if not conexiones:
         return render_template('error.html')
-    return render_template('curso.html', codigo=codigo)
+    
+    curso = Curso.query.filter_by(codigo=codigo).first()
+    if not curso:
+        return render_template('error.html')
+    return render_template('curso.html', codigo=codigo, nombre_curso=curso.nombre)
 
 @rutas.route("/curso/<string:codigo>/tarea/<int:id>")
 def tarea(codigo, id):
