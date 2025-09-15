@@ -21,11 +21,13 @@
             </div>
     {%else%}
             <div style="margin-top:20px; padding:10px;">
-            <button onclick="mostrarUnirse()">Unirse a curso</button>
+            <button id="boton-unirse" type="button" class="btn btn-primary btn-lg" onclick="mostrarUnirse()">Unirse a curso</button>
 
-        
-            <input id="form-unirse" style="display:none;" type="text" placeholder="Código del curso">
-            <button id="boton-unirse" style="display:none;" onclick="unirseCurso()">Unirse</button>
+            <div id="form-unirse" style="display:none;">
+                <input id="codigo-unirse" type="text" placeholder="Código del curso">
+                <button id="boton-unirse" type="button" class="btn btn-primary btn-lg" onclick="unirseCurso()">Unirse</button>
+                <button type="button" class="btn btn-primary btn-lg" onclick="esconderUnirse()">Cancelar</button>
+            </div>
         </div>
     {% endif %}
 
@@ -85,6 +87,10 @@ function esconderFormulario() {
 
 function mostrarUnirse() {
     document.getElementById("form-unirse").style.display = "inline";
+    document.getElementById("boton-unirse").style.display = "none";
+}
+function esconderUnirse() {
+    document.getElementById("form-unirse").style.display = "none";
     document.getElementById("boton-unirse").style.display = "inline";
 }
 
@@ -120,7 +126,7 @@ function mostrarUnirse() {
     }
 
 async function unirseCurso() {
-    const codigo = document.getElementById("form-unirse").value;
+    const codigo = document.getElementById("codigo-unirse").value;
     if (!codigo) {
         alert("Ingresa un código");
         return;
